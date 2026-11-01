@@ -253,7 +253,7 @@ unchanged. The legacy profile has independent parity cases for every old preset 
 matrix, including constrained layouts. It keeps the a1b1ec8 text/control metrics,
 fixed insets, panel clamps and Settings rounding; only Recommended adapts its
 top inset and fits its metrics. At 2304×1296 with a 2160-pixel mode and a 14-pixel
-shell font, legacy xlarge retains 21-pixel body text and 105-pixel rows. A fitting
+shell font, legacy xlarge retains 21-pixel body text and 96-pixel rows. A fitting
 maximum excludes scrolling; zero means no offered percentage fits.
 
 An asynchronous FileView fixture covers frontend startup before daemon migration,

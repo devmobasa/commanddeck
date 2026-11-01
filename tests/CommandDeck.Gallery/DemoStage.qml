@@ -35,9 +35,11 @@ Scope {
   readonly property alias view: view
   readonly property alias theme: display.theme
   // Children of the stage render above the whole window; panelOverlays render
-  // inside the launcher panel, above its content.
+  // inside the launcher panel, above its content; underlays render behind the
+  // panel, such as a desktop window the launcher opens over.
   default property alias overlays: overlayLayer.data
   property alias panelOverlays: panelLayer.data
+  property alias underlays: underlayLayer.data
 
   signal shotSaved(string name)
 
@@ -194,6 +196,11 @@ Scope {
     Rectangle {
       anchors.fill: parent
       color: view.color
+    }
+
+    Item {
+      id: underlayLayer
+      anchors.fill: parent
     }
 
     Deck.SizingViewport {

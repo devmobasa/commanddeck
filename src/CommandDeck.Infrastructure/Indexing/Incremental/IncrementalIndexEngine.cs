@@ -11,6 +11,8 @@ internal sealed partial class IncrementalIndexEngine : IAsyncDisposable
 
     private const string ApplyFailedReason = "incremental-apply-failed";
     private const string PendingEventReason = "filesystem-event-pending";
+    private const string MissingRootError = "Folder does not exist.";
+    private const string MissingRootGuidance = "Stop indexing this folder, or create it.";
 
     private readonly IndexingOptions _options;
     private readonly IncrementalEventJournal _journal;
@@ -137,7 +139,7 @@ internal sealed partial class IncrementalIndexEngine : IAsyncDisposable
             if ( !Directory.Exists( root ) )
             {
                 _unwatchedRoots.Add( root );
-                MarkUnwatched( root, "Folder does not exist." );
+                MarkUnwatched( root, MissingRootError );
 
                 continue;
             }

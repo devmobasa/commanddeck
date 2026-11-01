@@ -17,7 +17,7 @@ ComboBox {
   property var options: []
   property string placeholder: "Nothing to choose"
   property bool showCurrentDescription: true
-  property Item windowProbe: Item { visible: false }
+  property Item windowProbe: Item { parent: root; visible: false }
 
   // Tab and Shift+Tab stay inside the settings dialog.
   Keys.priority: Keys.BeforeItem
@@ -31,15 +31,18 @@ ComboBox {
   readonly property string currentDescription: root.currentOption
     ? String(root.currentOption.description || "") : ""
 
+  readonly property string currentWarning: root.currentOption && root.currentOption.warning
+    ? String(root.currentOption.badge || "Warning") : ""
+
   // Options feed the model as objects so the ComboBox value contract holds:
   // currentText is the title (falling back to the id) and currentValue the id.
   textRole: "title"
   valueRole: "id"
   model: (root.options || []).map(option => ({ id: option.id, title: String(option.title || option.id || "") }))
-  implicitHeight: Math.round((root.showCurrentDescription && root.currentDescription.length > 0 ? 52 : 40) * root.theme.scale)
-  implicitWidth: Math.round(260 * root.theme.scale)
+  implicitHeight: Math.round(root.theme.fontBody * 2.1)
+  implicitWidth: Math.max(Math.round(90 * root.theme.scale), Math.min(Math.round(280 * root.theme.scale), valueText.implicitWidth + rightPadding + leftPadding))
   leftPadding: Math.round(12 * root.theme.scale)
-  rightPadding: Math.round(36 * root.theme.scale)
+  rightPadding: Math.round(root.theme.fontBody * 1.3 + 20 * root.theme.scale)
   hoverEnabled: true
   focusPolicy: Qt.StrongFocus
 
@@ -50,84 +53,52 @@ ComboBox {
     return -1
   }
 
-  // The control stretches its content item to the full available height, so
-  // the column sits inside a plain Item and centres itself in it. Otherwise a
-  // tall row leaves the title hugging the top edge.
-  contentItem: Item {
-    Column {
-      anchors.left: parent.left
-      anchors.right: parent.right
-      anchors.verticalCenter: parent.verticalCenter
-      spacing: Math.round(1 * root.theme.scale)
-
-      Row {
-        width: parent.width
-        spacing: Math.round(8 * root.theme.scale)
-
-        Text {
-          textFormat: Text.PlainText
-          text: root.count > 0 ? root.currentTitle : root.placeholder
-          color: root.count > 0 && root.enabled ? root.theme.text : root.theme.textFaint
-          elide: Text.ElideRight
-          width: Math.min(implicitWidth, parent.width - (badge.visible ? badge.width + parent.spacing : 0))
-          font.family: root.theme.fontFamily
-          font.pixelSize: Math.round(root.theme.fontBody * 1.15)
-          font.weight: Font.Medium
-        }
-
-        Rectangle {
-          id: badge
-          visible: root.currentOption && root.currentOption.badge ? true : false
-          anchors.verticalCenter: parent.verticalCenter
-          width: badgeText.implicitWidth + Math.round(10 * root.theme.scale)
-          height: badgeText.implicitHeight + Math.round(4 * root.theme.scale)
-          radius: height / 2
-          color: root.currentOption && root.currentOption.warning
-            ? root.tint(root.theme.urgent, 0.16)
-            : root.tint(root.theme.accent, 0.18)
-
-          Text {
-            id: badgeText
-            anchors.centerIn: parent
-            textFormat: Text.PlainText
-            text: root.currentOption && root.currentOption.badge ? String(root.currentOption.badge) : ""
-            color: root.currentOption && root.currentOption.warning ? root.theme.urgent : root.theme.text
-            font.family: root.theme.fontFamily
-            font.pixelSize: root.theme.fontCaption
-            font.weight: Font.DemiBold
-          }
-        }
-      }
-
-      Text {
-        width: parent.width
-        visible: root.showCurrentDescription && root.currentDescription.length > 0
-        textFormat: Text.PlainText
-        text: root.currentDescription
-        color: root.theme.textMuted
-        elide: Text.ElideRight
-        font.family: root.theme.fontFamily
-        font.pixelSize: root.theme.fontSmall
+  contentItem: Text {
+    id: valueText
+    textFormat: Text.PlainText
+    text: root.count > 0 ? root.currentTitle : root.placeholder
+    color: root.enabled && root.count > 0 ? root.theme.text : root.theme.textFaint
+    horizontalAlignment: Text.AlignRight
+    verticalAlignment: Text.AlignVCenter
+    elide: Text.ElideRight
+    font.family: root.theme.fontFamily
+    font.pixelSize: root.theme.fontBody
+  }
+  indicator: Rectangle {
+    x: root.width - width - Math.round(6 * root.theme.scale)
+    y: (root.height - height) / 2
+    width: Math.round(root.theme.fontBody * 1.3)
+    height: width
+    radius: width * 0.3
+    color: root.theme.surfaceStrong
+    Canvas {
+      id: chevrons
+      anchors.fill: parent
+      readonly property color ink: root.theme.text
+      onInkChanged: requestPaint()
+      onPaint: {
+        const ctx = getContext("2d")
+        ctx.reset()
+        ctx.strokeStyle = ink
+        ctx.lineWidth = 1.5
+        ctx.lineCap = "round"
+        ctx.lineJoin = "round"
+        ctx.beginPath()
+        ctx.moveTo(width * 0.33, height * 0.4)
+        ctx.lineTo(width * 0.5, height * 0.23)
+        ctx.lineTo(width * 0.67, height * 0.4)
+        ctx.moveTo(width * 0.33, height * 0.6)
+        ctx.lineTo(width * 0.5, height * 0.77)
+        ctx.lineTo(width * 0.67, height * 0.6)
+        ctx.stroke()
       }
     }
   }
-
-  indicator: Text {
-    x: root.width - width - Math.round(12 * root.theme.scale)
-    y: (root.height - height) / 2
-    text: "⌄"
-    color: root.enabled ? root.theme.textMuted : root.theme.textFaint
-    font.family: root.theme.fontFamily
-    font.pixelSize: Math.round(root.theme.fontBody * 1.3)
-  }
-
   background: Rectangle {
-    radius: Math.max(4, root.theme.radiusSmall)
-    color: root.down || root.popup.visible
-      ? root.tint(root.theme.text, 0.13)
-      : root.hovered ? root.tint(root.theme.text, 0.11) : root.theme.surfaceStrong
-    border.width: root.activeFocus ? 2 : 1
-    border.color: root.activeFocus ? root.theme.focusRing : root.theme.separator
+    radius: height / 2
+    color: root.down || root.popup.visible || root.hovered ? root.theme.surface : "transparent"
+    border.width: root.activeFocus ? 2 : 0
+    border.color: root.theme.focusRing
   }
 
   delegate: ItemDelegate {
@@ -138,13 +109,22 @@ ComboBox {
     width: ListView.view ? ListView.view.width : root.width
     height: Math.round((row.option && row.option.description ? 52 : 38) * root.theme.scale)
     hoverEnabled: true
+    highlighted: root.highlightedIndex === row.index
     padding: 0
 
     contentItem: Item {
+      Text {
+        x: Math.round(8 * root.theme.scale)
+        anchors.verticalCenter: parent.verticalCenter
+        text: row.current ? "✓" : ""
+        color: row.highlighted ? root.theme.accentText : root.theme.text
+        font.family: root.theme.fontFamily
+        font.pixelSize: root.theme.fontBody
+      }
       Column {
         anchors.left: parent.left
         anchors.right: rowBadge.visible ? rowBadge.left : parent.right
-        anchors.leftMargin: Math.round(12 * root.theme.scale)
+        anchors.leftMargin: Math.round(28 * root.theme.scale)
         anchors.rightMargin: Math.round(10 * root.theme.scale)
         anchors.verticalCenter: parent.verticalCenter
         spacing: Math.round(1 * root.theme.scale)
@@ -153,11 +133,11 @@ ComboBox {
           width: parent.width
           textFormat: Text.PlainText
           text: row.option ? String(row.option.title || row.option.id || "") : ""
-          color: row.current ? root.theme.selectedText : root.theme.text
+          color: row.highlighted ? root.theme.accentText : root.theme.text
           elide: Text.ElideRight
           font.family: root.theme.fontFamily
-          font.pixelSize: Math.round(root.theme.fontBody * 1.1)
-          font.weight: row.current ? Font.DemiBold : Font.Medium
+          font.pixelSize: root.theme.fontBody
+          font.weight: Font.Normal
         }
 
         Text {
@@ -165,7 +145,7 @@ ComboBox {
           visible: row.option && row.option.description ? true : false
           textFormat: Text.PlainText
           text: row.option ? String(row.option.description || "") : ""
-          color: root.theme.textMuted
+          color: row.highlighted ? root.theme.accentText : root.theme.textMuted
           elide: Text.ElideRight
           font.family: root.theme.fontFamily
           font.pixelSize: root.theme.fontSmall
@@ -190,7 +170,7 @@ ComboBox {
           anchors.centerIn: parent
           textFormat: Text.PlainText
           text: row.option && row.option.badge ? String(row.option.badge) : ""
-          color: row.option && row.option.warning ? root.theme.urgent : root.theme.text
+          color: row.highlighted ? root.theme.accentText : row.option && row.option.warning ? root.theme.urgent : root.theme.text
           font.family: root.theme.fontFamily
           font.pixelSize: root.theme.fontCaption
           font.weight: Font.DemiBold
@@ -199,10 +179,8 @@ ComboBox {
     }
 
     background: Rectangle {
-      color: row.current
-        ? root.theme.selectedBackground
-        : row.hovered || row.highlighted ? root.tint(root.theme.text, 0.08) : "transparent"
-      radius: Math.max(3, root.theme.radiusSmall - 2)
+      color: row.highlighted ? root.theme.accent : row.hovered ? root.theme.surfaceStrong : "transparent"
+      radius: Math.max(0, root.theme.radiusSmall - 2)
     }
   }
 
@@ -212,10 +190,11 @@ ComboBox {
     readonly property real windowWidth: root.windowProbe.Window.window
       ? root.windowProbe.Window.window.width
       : 1e9
-    readonly property real anchorX: root.visible ? root.mapToItem(null, 0, 0).x : 0
-    x: anchorX + width > windowWidth - Math.round(8 * root.theme.scale) ? root.width - width : 0
+    property real anchorX: 0
+    onAboutToShow: anchorX = root.mapToItem(null, 0, 0).x
+    x: Math.max(Math.round(8 * root.theme.scale) - anchorX, root.width - width)
     y: root.height + Math.round(4 * root.theme.scale)
-    width: Math.max(root.width, Math.round(340 * root.theme.scale))
+    width: Math.min(Math.max(root.width, Math.round(340 * root.theme.scale)), windowWidth - Math.round(16 * root.theme.scale))
     implicitHeight: Math.min(contentItem.implicitHeight + topPadding + bottomPadding, Math.round(420 * root.theme.scale))
     padding: Math.round(6 * root.theme.scale)
 
@@ -229,7 +208,7 @@ ComboBox {
     }
 
     background: Rectangle {
-      radius: Math.max(6, root.theme.radiusSmall)
+      radius: root.theme.radiusSmall
       color: root.theme.popupBackground
       border.width: 1
       border.color: root.theme.border

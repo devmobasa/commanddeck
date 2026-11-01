@@ -40,6 +40,7 @@ QtObject {
   // Shift+Escape: back to an empty search on Home from any filter or view.
   signal rootRequested()
   signal primaryRequested()
+  signal newWindowRequested()
   signal selectionIdentityChanged(var result)
 
   onSelectedIndexChanged: refreshSelection()
@@ -322,6 +323,10 @@ QtObject {
 
   function invokePrimary() {
     primaryRequested()
+  }
+
+  function invokeNewWindow() {
+    newWindowRequested()
   }
 
   function refreshSelection() {

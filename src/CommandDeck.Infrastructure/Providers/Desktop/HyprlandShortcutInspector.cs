@@ -19,11 +19,29 @@ public static class HyprlandShortcutInspector
         new( "system-menu", "System Menu", "omarchy-menu toggle system", ["System menu"] )
     ];
 
-    public static async ValueTask<IReadOnlyList<ShortcutBinding>> InspectAsync( CancellationToken cancellationToken )
+    public const int MaximumKeybindings = 1024;
+    private const int MaximumDescriptionCharacters = 200;
+    private const string Xf86Prefix = "XF86";
+
+    public static async ValueTask<IReadOnlyList<ShortcutBinding>> InspectAsync( CancellationToken cancellationToken ) =>
+        (await InspectWithKeybindingsAsync( cancellationToken )
+            .ConfigureAwait( false )).Shortcuts;
+
+    // One hyprctl call answers both the launcher targets and the full binding list.
+    public static async ValueTask<(IReadOnlyList<ShortcutBinding> Shortcuts, IReadOnlyList<Keybinding> Keybindings)> InspectWithKeybindingsAsync(
+        CancellationToken cancellationToken )
+    {
+        var output = await ReadBindsAsync( cancellationToken )
+            .ConfigureAwait( false );
+
+        return output.Json is { } json ? (Parse( json ), ParseKeybindings( json )) : (output.Failure!, []);
+    }
+
+    private static async ValueTask<(string? Json, IReadOnlyList<ShortcutBinding>? Failure)> ReadBindsAsync( CancellationToken cancellationToken )
     {
         if ( !ProcessRunner.ExistsOnPath( ToolExecutables.Hyprctl ) )
         {
-            return EmptyBindings( ShortcutStatuses.NotConfigured, "hyprctl is unavailable on PATH." );
+            return (null, EmptyBindings( ShortcutStatuses.NotConfigured, "hyprctl is unavailable on PATH." ));
         }
 
         var result = await ProcessRunner
@@ -33,17 +51,88 @@ public static class HyprlandShortcutInspector
 
         if ( result.TimedOut )
         {
-            return EmptyBindings( ShortcutStatuses.NotConfigured, "Shortcut inspection timed out." );
+            return (null, EmptyBindings( ShortcutStatuses.NotConfigured, "Shortcut inspection timed out." ));
         }
 
         if ( result.ExitCode != 0 )
         {
-            var detail = DescribeFailure( result );
-
-            return EmptyBindings( ShortcutStatuses.NotConfigured, detail );
+            return (null, EmptyBindings( ShortcutStatuses.NotConfigured, DescribeFailure( result ) ));
         }
 
-        return Parse( result.StandardOutput );
+        return (result.StandardOutput, null);
+    }
+
+    // Every keyboard binding with its chord and description. The chord uses the
+    // launcher's modifier order; XF86 media keys keep Hyprland's own spelling.
+    public static IReadOnlyList<Keybinding> ParseKeybindings( string json )
+    {
+        try
+        {
+            using var document = JsonDocument.Parse( json );
+            if ( document.RootElement.ValueKind != JsonValueKind.Array )
+            {
+                return [];
+            }
+
+            List<Keybinding> bindings = [];
+            foreach ( var bind in document.RootElement.EnumerateArray( ) )
+            {
+                if ( bindings.Count == MaximumKeybindings )
+                {
+                    break;
+                }
+
+                var chord = FormatDisplayChord( bind );
+                if ( bind.ValueKind != JsonValueKind.Object || chord.Length == 0 || IsMouseBind( bind ) )
+                {
+                    continue;
+                }
+
+                bindings.Add( new Keybinding
+                {
+                    Chord = chord,
+                    Description = CleanText( JsonElementReader.ReadString( bind, "description" ), MaximumDescriptionCharacters ),
+                    Submap = CleanText( JsonElementReader.ReadString( bind, "submap" ), MaximumDescriptionCharacters )
+                } );
+            }
+
+            return bindings;
+        }
+        catch ( JsonException )
+        {
+            return [];
+        }
+    }
+
+    private static string FormatDisplayChord( JsonElement bind )
+    {
+        var chord = bind.ValueKind == JsonValueKind.Object ? FormatChord( bind ) : string.Empty;
+        if ( chord.Length == 0 )
+        {
+            return chord;
+        }
+
+        var key = JsonElementReader.ReadString( bind, "key" );
+        if ( key is null || !key.StartsWith( Xf86Prefix, StringComparison.OrdinalIgnoreCase ) )
+        {
+            return chord;
+        }
+
+        var plus = chord.LastIndexOf( '+' );
+
+        return plus < 0 ? key : chord[..(plus + 1)] + key;
+    }
+
+    private static bool IsMouseBind( JsonElement bind ) =>
+        bind.TryGetProperty( "mouse", out var mouse ) && mouse.ValueKind == JsonValueKind.True;
+
+    private static string CleanText( string? value, int limit )
+    {
+        var clean = new string( (value ?? string.Empty)
+            .Where( static character => !char.IsControl( character ) )
+            .ToArray( ) ).Trim( );
+
+        return clean.Length > limit ? clean[..limit] : clean;
     }
 
     public static async ValueTask<ShortcutInventory> InspectInventoryAsync( CancellationToken cancellationToken )

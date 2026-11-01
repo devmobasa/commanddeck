@@ -52,7 +52,7 @@ Item {
     }
     function test_management_pages_use_the_launcher_theme() {
       compare(panel.searchControl.font.family, theme.fontFamily)
-      verify(Qt.colorEqual(panel.searchControl.background.color, theme.surfaceStrong), "search uses the launcher field")
+      verify(Qt.colorEqual(panel.searchControl.background.color, theme.withAlpha(theme.text, 0.06)), "search uses the launcher field")
       verify(Qt.colorEqual(panel.palette.highlight, theme.withAlpha(theme.accent, 0.28)),
         "the current package row uses the launcher accent, not the platform highlight")
       verify(Qt.colorEqual(panel.palette.window, theme.popupBackground), "stock controls inherit the launcher palette")

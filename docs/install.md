@@ -288,12 +288,26 @@ journalctl --user -u commanddeck.service -n 100 --no-pager
 omarchy plugin validate ./qml
 ```
 
+A failed Herdr command logs `event=herdr.command_failed` with its exit code and
+first error line. Read those with
+`journalctl --user -u commanddeck.service -g herdr.command_failed`.
+
 `commanddeck doctor` also reads the desktop wiring without changing it. It
 checks that the plugin is installed and enabled in `~/.config/omarchy/shell.json`,
 and that `commanddeck.lua` exists and `hyprland.lua` requires it once. In a
 Hyprland session, it also checks that `hyprctl -j binds` shows the CommandDeck
 chord and `hyprctl -j globalshortcuts` lists `commanddeck:toggle`. These checks
 only warn or skip, so they never fail `doctor`. Each warning prints a `Fix:` line.
+
+**Settings → Diagnostics** shows the same status without a terminal: version,
+process, start time, socket, catalog counts, database size, index state, and
+how the most recent searches performed. Search timings give the median, p95,
+and slowest of the last 200 searches, then each provider's p95 and slowest run,
+slowest first, with how many of its runs hit the deadline. Only durations are
+kept, in memory; no search text is recorded, and private searches are not
+counted. Every value has a **Copy** button, and **Copy debug info** copies the
+whole page as plain text for a bug report. The page asks the running daemon;
+`commanddeck status` runs in its own process, so it has no search timings.
 
 - No files: check roots/exclusions, run `commanddeck reindex`, and inspect
   `commanddeck index status`.
@@ -353,3 +367,22 @@ acceptance need a matching ARM64 host. Cross-publishing alone is not platform
 support evidence. The release workflow builds `linux-arm64` on a native ARM64
 runner, so its publish smoke runs there. Installed desktop acceptance on ARM64
 is not yet recorded.
+
+### Shortcut changes from Settings
+
+Settings → Shortcuts writes desktop changes to `~/.config/hypr/commanddeck_keys.lua`.
+The generated `commanddeck.lua` loads this optional module after the original bindings, then binds the launcher
+and defines the recording submap. Shared keys keep other literal actions; edits are refused when an action cannot be recreated.
+For a manual launcher hotkey, the first desktop change adds a support-only module and its require line;
+it leaves the manual launcher binding intact. The launcher hotkey stays read-only.
+The source of truth is `$XDG_STATE_HOME/commanddeck/shortcut-overrides.json`
+(default `~/.local/state/commanddeck/shortcut-overrides.json`). The Lua file is derived from that JSON.
+CommandDeck keeps one `.bak` beside each replaced shortcut file and reloads Hyprland after a change.
+A failed write or reload restores the previous files and reports an error in Settings.
+
+Use a row's restore button for one change, or **Reset all…** in the Desktop **…** menu for all changes.
+Reset all empties the JSON state and removes the derived keys module. Deleting the keys module also
+stops desktop overrides on the next reload; delete the JSON state too to discard the saved changes.
+When uninstalling manually, remove both files along with `commanddeck.lua` and its require line.
+The optional require line is safe when the keys module is absent. User bindings and Omarchy defaults
+are never edited by the Settings editor.

@@ -4,6 +4,30 @@ public static partial class Program
 {
     private static async Task RunCoreRegistrationsAsync( )
     {
+        await RunAsync( "shortcut review serializes inventory and writes for concurrent panels", ShortcutConcurrentPanelsValidateFreshInventoryAsync );
+        await RunAsync( "shortcut review support loader defines Escape after keys", ShortcutSupportLoaderDefinesEscapeAfterKeysAsync );
+        Run( "shortcut review rejects shadowed helpers and uncertain requires", ShortcutReaderRejectsShadowedHelpersAndUncertainRequires );
+        Run( "shortcut review executes swaps and reserves a clipboard-incompatible chord", ShortcutGeneratedExecutionSupportsSwaps );
+        await RunAsync( "shortcut review preserves shared actions through move remove restore and reset", ShortcutGeneratedExecutionPreservesSharedBindingsAsync );
+        await RunAsync( "shortcut review refuses shared unportable and submap bindings", ShortcutGeneratedExecutionRejectsUnportableSharedBindingsAsync );
+        await RunAsync( "shortcut review executes launcher replacement and Escape after unbinds", ShortcutGeneratedExecutionOrdersLauncherAndEscapeAsync );
+        await RunAsync( "shortcut editor refuses replacement when the conflicting source loads after its module", ShortcutCannotReplaceBindingsLoadedAfterItsModuleAsync );
+        await RunAsync( "shortcut editor generated keys keep distinct removal identities", ShortcutGeneratedKeysKeepDistinctRemovalIdentitiesAsync );
+        await RunAsync( "shortcut editor restores a key taken by another desktop action", ShortcutRestoreFreesAChordTakenByAnotherDesktopActionAsync );
+        await RunAsync( "shortcut editor restores a desktop chord by returning the launcher to its original key", ShortcutRestoreFreesAChordTakenByTheLauncherAsync );
+        await RunAsync( "shortcut editor restore returns the reloaded inventory instead of stale moved keys", ShortcutRestoreReadsTheReloadedInventoryAsync );
+        await RunAsync( "shortcut editor launcher hints update immediately and reject an older background read", ShortcutHintsUpdateBeforeAnOlderReadCompletesAsync );
+        await RunAsync( "shortcut editor manual hotkey gets a support module without rebinding the launcher", ShortcutManualHotkeyGetsSupportWithoutRebindingAsync );
+        await RunAsync( "shortcut editor treats Lua configuration errors as a failed reload", ShortcutConfigurationErrorRollsBackAsync );
+        await RunAsync( "shortcut editor replaces the global launcher chord and restores it with its owner", ShortcutReplaceGlobalHotkeyAndRestoreAsync );
+        await RunAsync( "shortcut editor daemon changes hotkey and resets recording when its socket disconnects", ShortcutDaemonHotkeyAndDisconnectAsync );
+        await RunAsync( "shortcut editor recording start stop owner timeout startup and retry reset", ShortcutRecordingLifecycleAsync );
+        await RunAsync( "shortcut editor global hotkey validates backs up and changes only the owned module", ShortcutHotkeyChangesUseOwnedFileAsync );
+        Run( "shortcut editor Lua reader accepts literals and rejects executable expressions", ShortcutLuaReaderKeepsLiteralCallsAndRejectsCode );
+        await RunAsync( "shortcut editor source policy follows load order submaps and changed files", ShortcutSourcePolicyAndCacheAsync );
+        await RunAsync( "shortcut editor moves removes adds replaces and restores without editing source files", ShortcutMoveRemoveAddReplaceAndResetAsync );
+        await RunAsync( "shortcut editor reload failure restores JSON and Lua with one backup", ShortcutReloadFailureRestoresFilesAsync );
+        await RunAsync( "shortcut editor atomic write failure keeps previous module", ShortcutWriteFailureKeepsModuleAsync );
         Run( "inline calculator parser preserves search and rejects ordinary input", InlineCalculatorParserPreservesSearchAsync );
         Run( "quicklinks configuration and management share validation and placeholder rules", QuicklinkValidationMatchesConfiguration );
 
@@ -21,6 +45,9 @@ public static partial class Program
 
         await RunAsync( "window commands bind the window focused before the launcher opened", WindowCommandsBindTheWindowFocusedBeforeTheLauncherAsync );
         await RunAsync( "window commands dispatch only to the bound window address", WindowCommandsDispatchToTheBoundAddressAsync );
+        await RunAsync( "window toggles are named for the window focused before the launcher", WindowTogglesAreNamedForTheFocusedWindowAsync );
+        Run( "application windows match by class across web app profiles", ApplicationWindowsMatchByClassAcrossWebAppProfiles );
+        await RunAsync( "application launch focuses an open window unless a new one is asked for", ApplicationLaunchFocusesAnOpenWindowAsync );
         await RunAsync( "workspace preview preferences persist export reset and reject invalid writes", WorkspacePreviewPreferencesAsync );
         await RunAsync( "preference rows parse in database read order", PreferenceRowsParseInReadOrderAsync );
         await RunAsync( "spec selection lists filters and reports failures without running unrelated fixtures", SpecSelectionReportsAsync );
@@ -168,6 +195,13 @@ public static partial class Program
             True( stopwatch.Elapsed < TimeSpan.FromMilliseconds( 250 ) );
             Equal( 0d, FuzzyMatcher.Score( new string( 'a', 64 ), new string( 'a', 63 ) + "b" ) );
         } );
+
+        Run( "fuzzy typo matches a word that is still being typed", FuzzyTypoMatchesWordStillBeingTyped );
+        Run( "fuzzy typo runs across words separated by spaces", FuzzyTypoRunsAcrossWords );
+        Run( "fuzzy typo keeps digits and punctuation as typed", FuzzyTypoKeepsDigitsAndPunctuationAsTyped );
+        Run( "fuzzy typo drops an extra query letter only at a word end", FuzzyTypoDropsExtraQueryLetterOnlyAtWordEnd );
+        Run( "fuzzy typo needs four characters and a letter or digit first", FuzzyTypoNeedsFourCharactersAndALetterOrDigitFirst );
+        Run( "fuzzy typo stays bounded on long candidates", FuzzyTypoStaysBoundedOnLongCandidates );
 
         await RunAsync( "versioned ranking corpus meets quality thresholds", VersionedRankingCorpusMeetsQualityThresholdsAsync );
         await RunAsync( "relevance corpus reports required forbidden window and typing failures", RelevanceCorpusReportsSearchFailuresAsync );

@@ -1,5 +1,6 @@
 import "../../common"
 import QtQuick
+import "../../common/InterfaceFonts.js" as InterfaceFonts
 import Quickshell
 import "../../common" as CommandDeck
 
@@ -15,6 +16,22 @@ QtObject {
     host.part_motionTheme.tokens = null
     host.part_motionTheme.densityScale = 1
     host.part_motionTheme.displayScale = 1
+
+    const fontDeck = host.part_integratedDeck
+    host.expect(fontDeck.interfaceFont === "sans" && fontDeck.part_appTheme.fontFamily === InterfaceFonts.sansFamily(),
+      "the interface starts with the installed proportional font")
+    const machineFont = fontDeck.part_appTheme.monoFontFamily
+    fontDeck.applyInterfaceFont("shell")
+    host.expect(fontDeck.interfaceFont === "shell" && fontDeck.part_appTheme.fontFamily === machineFont
+        && fontDeck.part_settingsTheme.fontFamily === fontDeck.part_settingsTheme.monoFontFamily,
+      "the font choice applies to launcher and Settings window themes immediately")
+    fontDeck.applyInterfaceFont("sans")
+    host.expect(fontDeck.part_appTheme.fontFamily === InterfaceFonts.sansFamily()
+        && fontDeck.part_appTheme.monoFontFamily === machineFont,
+      "returning to Sans preserves the machine-text font")
+    host.expect(fontDeck.part_appTheme.rowHeight === Math.round(42 * fontDeck.part_appTheme.scale)
+        && fontDeck.part_appTheme.iconSize === Math.round(28 * fontDeck.part_appTheme.scale),
+      "the regular launcher uses 42-pixel rows and 28-pixel icons at unit scale")
 
     // The scrim strength is a tunable, opaque-by-default floor.
     host.expect(host.part_motionTheme.scrimStrength >= 0.6,

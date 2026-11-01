@@ -289,10 +289,12 @@ public sealed partial class SearchCoordinator
         }
     }
 
-    // Calculator, status and AI have their own switches, outside source preferences.
+    // Calculator, status and AI have their own switches, outside source
+    // preferences; Settings rows are always available.
     private static bool HasDisabledSource( SearchResult result, HashSet<string> enabledSources )
     {
-        return result.SourceId is not SourceIds.Calculator and not SourceIds.Status and not SourceIds.Ai && !enabledSources.Contains( result.SourceId );
+        return result.SourceId is not SourceIds.Calculator and not SourceIds.Status and not SourceIds.Ai and not SourceIds.Settings &&
+               !enabledSources.Contains( result.SourceId );
     }
 
     private static bool IsOutsideIncludedFilters( SearchResult result, ParsedQuery query )

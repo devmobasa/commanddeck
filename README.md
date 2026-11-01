@@ -17,23 +17,37 @@ Press **Ctrl+Space**, type, and act.
 
 [What it does](#what-it-does) · [Install](#install) · [Hotkey](#hotkey) · [First steps](#first-steps) ·
 [Configuration](#configuration) · [Documentation](#documentation) ·
-[Development](#development) · [Gallery](docs/gallery.md)
+[Development](#development) · [Gallery](docs/gallery.md) · [Showcase](docs/showcase.md)
 
 ## What it does
 
 - **One search for the desktop.** Find apps, files and file text, Hyprland
   config keys, windows, workspaces, Omarchy menu actions, user services,
-  projects, snippets, and emoji.
+  projects, snippets, emoji, and settings. Typos are fine: `fierf` still finds
+  Firefox.
+- **Switch, don't duplicate.** Enter switches to an app that is already open.
+  Shift+Enter opens a new window.
 - **Made for Omarchy.** It uses the colors of the active Omarchy theme. It opens
   [Omarchy submenus](docs/search-and-ranking.md#omarchy-submenus) in place and
-  shows a config key at its file and line.
-- **Calculator.** Type `100 * 5`, `100 km to miles`, `100 usd to eur`, or
-  `days until 11 sep`. You do not need `=`.
+  shows a config key at its file and line. It follows Hyprland's rounding, so
+  `rounding = 0` gives square corners throughout.
+- **Calculator.** Type `100 * 5`, `1,000 * 1.2`, `100 km to miles`,
+  `100 usd to eur`, or `days until 11 sep`. You do not need `=`.
+- **Large Type.** **Ctrl+L** shows your search, or a calculator answer, across
+  the whole screen.
+- **Drag files out.** Drag a file row into a terminal, browser, or chat.
 - **Run programs.** Type `>` and a command, for example `> htop`.
 - **Herdr.** `herdr:` finds [Herdr](docs/search-and-ranking.md#herdr-spaces-and-tabs)
   spaces and tabs. `htab:` finds tabs only and shows which agent tabs need attention.
+  `agents:` lists every agent, blocked ones first. In a space, a name that no tab
+  has offers **Create tab**.
+- **Learn your keys.** A row that has a Hyprland shortcut shows it. Apps and
+  commands offer **Copy Hyprland Binding**, a ready-to-paste `hl.bind` line.
+- **Controls that say what they do.** Desktop controls name the next step:
+  **Mute** or **Unmute**, **Turn Wi-Fi Off**, **Enter Fullscreen**.
 - **More sources.** Clipboard history, HEY mail, desktop controls, time zones,
-  quicklinks, and web search.
+  quicklinks, and web search. Type an address such as `github.com/devmobasa`
+  to open it, or choose **Save as Quicklink…**.
 - **Optional AI.** Ask a direct provider, or the embedded assistant (Codex,
   Claude Code, Cursor, or Grok). The daemon enforces the trust level that you select.
 - **Extensions.** Experimental C# extensions run as separate, sandboxed processes.
@@ -156,6 +170,9 @@ It also adds one line to `~/.config/hypr/hyprland.lua`, directly after
 if package.searchpath("hypr.commanddeck", package.path) then require("hypr.commanddeck") end -- CommandDeck hotkey
 ```
 
+The module also turns off Hyprland's fade for CommandDeck's windows, so they
+open and close at once.
+
 To bind it yourself instead, put the `hl.bind` line in your own bindings. The
 key sends Hyprland's global `commanddeck:toggle` to the CommandDeck plugin in the
 Omarchy shell, so a key press starts no process. `commanddeck hotkey remove`
@@ -168,18 +185,24 @@ Press **Ctrl+Space** and type. Try these searches:
 
 | Type | Result |
 |---|---|
-| `firefox` | Launch an app |
+| `firefox` | Launch an app, or switch to it when it is already open |
 | `gaps` | The Omarchy gaps toggle and the Hyprland gap keys |
 | `100 * 5` | `500`. Press Enter to copy it |
 | `100 usd to eur` | Currency, with daily ECB rates |
 | `days until 11 sep` | A date count |
 | `> htop` | Run a program |
+| `fierf` | Firefox, typo and all |
+| `reduce motion` | The setting, opened and highlighted in Settings |
+| `github.com/devmobasa` | Open the address, or save it as a quicklink |
 | `htab:` | Herdr tabs and their agent status |
+| `agents:` | Every Herdr agent, the most urgent first |
 
 | Key | Action |
 |---|---|
-| **Enter** | Open or run the selected result |
+| **Enter** | Open or run the selected result; an open app is focused |
+| **Shift+Enter** | Open a new window of an app that is already open |
 | **Ctrl+K** | Show the actions for the result |
+| **Ctrl+L** | Show the search, or a calculator answer, across the screen |
 | **Ctrl+1** to **Ctrl+9** | Run a numbered result |
 | **?** | Show all prefixes, with examples |
 | **F1** | Show all shortcuts |
@@ -194,7 +217,7 @@ A prefix limits the search to one source:
 | `app:` / `file:` / `text:` | Apps, files, and file text |
 | `cfg:` / `oma:` | Config keys and Omarchy controls |
 | `win:` / `ws:` | Windows and workspaces |
-| `herdr:` / `htab:` | Herdr spaces and tabs, or tabs only |
+| `herdr:` / `htab:` / `agents:` | Herdr spaces and tabs, tabs only, or agents |
 | `clip:` / `snip:` / `proj:` | Clipboard history, snippets, and projects |
 | `ctl:` / `kill:` / `svc:` | Desktop controls, your processes, and user services |
 | `link:` / `web:` / `tz:` / `emoji:` | Quicklinks, web search, time zones, and emoji |
@@ -207,9 +230,22 @@ The [launcher guide](docs/launcher-workflows.md) and the
 
 ## Configuration
 
-Open Settings with the gear button or **Ctrl+,**. Settings has six pages:
-Search, AI, Editors, Filters, Shortcuts, and Customization. Each page has cards,
-and you can search the cards to find a control.
+Open Settings with the gear button or **Ctrl+,**. Settings has seven pages:
+Search, AI, Editors, Filters, Shortcuts, Customization, and Diagnostics. On
+narrow screens, use the page picker. **Home** and **End** go to the top or bottom
+of a page.
+
+- **Search.** Type in the field at the top of the sidebar. Settings opens the
+  page with the best match and outlines the control. When you stop typing, the
+  rest of the window dims briefly around it. Enter moves to it. The launcher
+  finds the same settings.
+- **Shortcuts.** Find a key or a binding, for example `super+space`. The page
+  shows CommandDeck's own shortcuts and your Hyprland bindings.
+  Click a pill to record a key; changed desktop bindings can be restored.
+- **Diagnostics.** The version, process, socket, start time, and recent search
+  times. **Copy debug info** copies them for a bug report.
+- **Interface font.** **Customization → Appearance** offers Sans (default) and
+  Shell font. Paths, commands, and key chords keep the shell font.
 
 Other options are in the configuration file,
 `~/.config/commanddeck/commanddeck.jsonc`. Start from the
@@ -230,6 +266,8 @@ in plain words.
 - [Security and privacy](docs/security.md), [permissions](docs/permissions.md),
   and the [security policy](SECURITY.md).
 - [Gallery](docs/gallery.md): screenshots of each feature.
+- [Showcase](docs/showcase.md): short animated tours of changing shortcuts,
+  finding settings, and the Settings design.
 
 ## Development
 

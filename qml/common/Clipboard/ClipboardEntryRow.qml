@@ -110,13 +110,13 @@ Item {
         Layout.alignment: Qt.AlignVCenter
         implicitWidth: Math.round(28 * root.theme.scale)
         implicitHeight: implicitWidth
-        radius: Math.max(4, root.theme.radiusSmall - 1)
+        radius: Math.max(0, root.theme.radiusSmall - 1)
         color: root.selected ? root.theme.accent : root.theme.withAlpha(root.theme.text, 0.07)
 
         Text {
           anchors.centerIn: parent
           text: Format.kindGlyph(root.kind)
-          color: root.selected ? root.theme.background : root.theme.textMuted
+          color: root.selected ? root.theme.accentText : root.theme.textMuted
           font.family: root.theme.fontFamily
           font.pixelSize: root.kind === Protocol.ClipboardPresentationKinds.Text ? root.theme.fontTitle : Math.round(root.theme.fontHeading * 1.15)
           font.weight: Font.DemiBold

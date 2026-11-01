@@ -31,6 +31,7 @@ function handleProtocolReconnected(root) {
 }
 
 function handleProtocolDisconnected(root) {
+  if (root.part_shortcutEditor) root.part_shortcutEditor.disconnected()
   if (root.part_quicklinksController) root.part_quicklinksController.disconnect()
   root.part_extensionController.disconnected()
   root.part_extensionManagementController.disconnected()

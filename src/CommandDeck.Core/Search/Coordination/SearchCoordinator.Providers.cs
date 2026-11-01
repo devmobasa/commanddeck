@@ -32,6 +32,7 @@ public sealed partial class SearchCoordinator
     private static bool FilterMatches( FilterDescriptor filter, SearchResult result ) =>
         string.Equals( filter.SourceId, result.SourceId, StringComparison.Ordinal ) &&
         (filter.Id != HerdrSearch.AttentionFilterId || HerdrSearch.NeedsAttention( result )) &&
+        (filter.Id != HerdrSearch.AgentsFilterId || HerdrSearch.IsAgentRow( result )) &&
         (!filter.Id.StartsWith( ExtensionStableIds.SearchProviderPrefix, StringComparison.Ordinal ) ||
          result.Metadata.GetValueOrDefault( ResultMetadataKeys.ExtensionSearchProvider ) == filter.Id) &&
         (filter.Kind is null || string.Equals( filter.Kind, result.Kind, StringComparison.Ordinal ));

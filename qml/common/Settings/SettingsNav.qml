@@ -15,8 +15,8 @@ Item {
   property string currentId: ""
   signal selected(string pageId)
 
-  readonly property int rowHeight: Math.round(54 * root.theme.scale)
-  implicitWidth: Math.round(224 * root.theme.scale)
+  readonly property int rowHeight: Math.round(root.theme.fontBody * 2.35)
+  implicitWidth: Math.round(212 * root.theme.scale)
   implicitHeight: column.implicitHeight
   activeFocusOnTab: true
   Accessible.role: Accessible.List
@@ -56,16 +56,22 @@ Item {
         required property var modelData
         readonly property bool current: entry.modelData.id === root.currentId
         Layout.fillWidth: true
+        readonly property bool groupStart: entry.index > 0
+          && root.pages[entry.index - 1].group !== entry.modelData.group
+        required property int index
+        Layout.topMargin: entry.groupStart ? Math.round(root.theme.fontBody * 0.9) : 0
         Layout.preferredHeight: root.rowHeight
-        radius: Math.max(4, root.theme.radiusSmall)
+        radius: Math.min(root.theme.radius, Math.round(7 * root.theme.scale))
         color: entry.current
-          ? root.theme.selectedBackground
-          : hover.hovered ? root.tint(root.theme.text, 0.06) : "transparent"
-        border.width: entry.current && root.activeFocus ? 2 : entry.current ? 1 : 0
+          ? root.theme.surfaceStrong
+          : hover.hovered ? root.theme.surface : "transparent"
+        border.width: entry.current && root.activeFocus ? 2 : 0
         border.color: entry.current && root.activeFocus ? root.theme.focusRing : root.theme.selectedBorder
         Accessible.role: Accessible.ListItem
         Accessible.name: String(entry.modelData.title || "")
         Accessible.focusable: true
+        Accessible.description: String(entry.modelData.subtitle || "")
+        Accessible.selected: entry.current
 
         HoverHandler { id: hover }
         TapHandler { onTapped: root.selected(entry.modelData.id) }
@@ -76,38 +82,27 @@ Item {
           anchors.rightMargin: Math.round(10 * root.theme.scale)
           spacing: Math.round(12 * root.theme.scale)
 
-          Text {
-            Layout.preferredWidth: Math.round(22 * root.theme.scale)
-            text: String(entry.modelData.icon || "")
-            color: entry.current ? root.theme.selectedText : root.theme.textMuted
-            horizontalAlignment: Text.AlignHCenter
-            font.family: root.theme.fontFamily
-            font.pixelSize: Math.round(root.theme.fontBody * 1.35)
+          Rectangle {
+            Layout.preferredWidth: Math.round(root.theme.fontBody * 1.5)
+            Layout.preferredHeight: width
+            radius: width * 0.26
+            color: String(entry.modelData.iconColor)
+            SettingsSymbol {
+              anchors.centerIn: parent
+              width: Math.round(parent.width * 0.8)
+              height: width
+              symbol: String(entry.modelData.id)
+              ink: "white"
+            }
           }
-
-          ColumnLayout {
+          Text {
             Layout.fillWidth: true
-            spacing: 0
-
-            Text {
-              Layout.fillWidth: true
-              text: String(entry.modelData.title || "")
-              color: entry.current ? root.theme.selectedText : root.theme.text
-              elide: Text.ElideRight
-              font.family: root.theme.fontFamily
-              font.pixelSize: Math.round(root.theme.fontBody * 1.15)
-              font.weight: entry.current ? Font.DemiBold : Font.Medium
-            }
-
-            Text {
-              Layout.fillWidth: true
-              visible: text.length > 0
-              text: String(entry.modelData.subtitle || "")
-              color: root.theme.textFaint
-              elide: Text.ElideRight
-              font.family: root.theme.fontFamily
-              font.pixelSize: root.theme.fontSmall
-            }
+            text: String(entry.modelData.title || "")
+            color: root.theme.text
+            elide: Text.ElideRight
+            font.family: root.theme.fontFamily
+            font.pixelSize: root.theme.fontBody
+            font.weight: entry.current ? Font.DemiBold : Font.Normal
           }
         }
       }

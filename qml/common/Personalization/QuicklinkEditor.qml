@@ -74,6 +74,7 @@ ColumnLayout {
   }
   SettingsField {
     id: urlField
+    machineText: true
     objectName: "quicklinkUrl"
     theme: root.theme
     Layout.fillWidth: true
@@ -134,7 +135,7 @@ ColumnLayout {
     text: "Preview: " + Validation.preview(urlField.text, sampleField.text)
     wrapMode: Text.WrapAnywhere
     color: root.theme.textMuted
-    font.family: root.theme.fontFamily
+    font.family: root.theme.monoFontFamily
     font.pixelSize: root.theme.fontBody
     Accessible.role: Accessible.StaticText
     Accessible.name: text

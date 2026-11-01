@@ -56,6 +56,8 @@ public sealed partial class CommandDeckRuntime
         results = await AddAiWorkflowActionsAsync( results, cancellationToken )
             .ConfigureAwait( false );
 
+        results = _keybindings?.Decorate( results ) ?? results;
+
         _extensionSearch?.RetainDisplayed( request, results );
 
         return new SearchOutcome( _cache.Store( results, request.Query, request.ContainsPrivateQuery, request.SearchOwner ), search.IncompleteProviderCount );

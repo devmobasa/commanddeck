@@ -121,7 +121,7 @@ EventPathFixture {
       waitForValue(fixture.part_settingsPanel.searchControl, "activeFocus", true)
       typeText("direct ai")
       compare(fixture.part_settingsPanel.currentPage, "ai")
-      keyClick(Qt.Key_Return)
+      keyClick(Qt.Key_Down)
       compare(fixture.part_settingsPanel.navigationControl.activeFocus, true)
       keyClick(Qt.Key_Tab)
       waitForValue(fixture.part_settingsPanel.aiFeaturesControl, "activeFocus", true)

@@ -78,6 +78,20 @@ Item {
       search.forceActiveFocus()
     }
     function cleanup() { help.opened = false; controller.close(false); nextTurn() }
+    function test_shortcut_pill_validates_before_saving() {
+      scene.settingsShown = true
+      compare(editor.pill.chord, "CTRL+SHIFT+V")
+      mouseClick(editor.pill)
+      keyClick(Qt.Key_V, Qt.ControlModifier)
+      compare(scene.preferences.clipboardHistoryShortcut, "CTRL+SHIFT+V")
+      verify(editor.shortcutRow.localError.length > 0)
+      mouseClick(editor.pill)
+      keyClick(Qt.Key_V, Qt.ControlModifier | Qt.AltModifier)
+      compare(scene.preferences.clipboardHistoryShortcut, "CTRL+ALT+V")
+      compare(editor.shortcutRow.localError, "")
+      compare(scene.preferences.hideAfterAction, false)
+    }
+
     function test_default_opens_empty_search_and_restores_focus() {
       keyClick(Qt.Key_V, Qt.ControlModifier)
       verify(!controller.opened, "normal Paste does not open history")
@@ -97,15 +111,10 @@ Item {
     }
     function test_settings_apply_rebind_disable_and_block_modal() {
       scene.settingsShown = true
-      mouseClick(editor.field)
-      editor.field.selectAll()
-      for (const character of "Ctrl+Alt+V") keyClick(character)
-      keyClick(Qt.Key_V, Qt.ControlModifier | Qt.ShiftModifier)
+      mouseClick(editor.pill)
+      keyClick(Qt.Key_V, Qt.ControlModifier | Qt.AltModifier)
       verify(!controller.opened, "shortcut never interrupts Settings")
-      // Restore the draft after testing the editing chord; no clipboard content is used.
-      editor.field.text = "Ctrl+Alt+V"
-      mouseClick(editor.applyControl)
-      compare(scene.preferences.clipboardHistoryShortcut, "Ctrl+Alt+V")
+      compare(scene.preferences.clipboardHistoryShortcut, "CTRL+ALT+V")
       compare(scene.preferences.hideAfterAction, false)
       scene.settingsShown = false
       search.forceActiveFocus()
@@ -115,10 +124,10 @@ Item {
       waitForValue(controller, "opened", true)
       controller.close(false)
       scene.settingsShown = true
-      mouseClick(editor.field)
-      keyClick(Qt.Key_A, Qt.ControlModifier)
+      mouseClick(editor.pill)
       keyClick(Qt.Key_Backspace)
-      keyClick(Qt.Key_Return)
+      verify(editor.shortcutRow.removing)
+      mouseClick(editor.shortcutRow.removeControl)
       compare(scene.preferences.clipboardHistoryShortcut, "")
       scene.settingsShown = false
       search.forceActiveFocus()
@@ -140,11 +149,9 @@ Item {
     function test_pending_validation_after_settings_closes(data) {
       scene.delayValidation = true
       scene.settingsShown = true
-      mouseClick(editor.field)
-      editor.field.selectAll()
-      for (const character of "Ctrl+Alt+V") keyClick(character)
-      mouseClick(editor.applyControl)
-      compare(scene.preferences.clipboardHistoryShortcut, "Ctrl+Alt+V")
+      mouseClick(editor.pill)
+      keyClick(Qt.Key_V, Qt.ControlModifier | Qt.AltModifier)
+      compare(scene.preferences.clipboardHistoryShortcut, "CTRL+ALT+V")
       verify(personalization.preferenceInFlight)
 
       scene.settingsShown = false

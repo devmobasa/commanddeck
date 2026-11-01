@@ -27,6 +27,7 @@ Item {
     height: display.sizing.panelHeight
     requestedWidth: display.sizing.contentWidth
     requestedHeight: display.sizing.contentHeight
+    Rectangle { anchors.fill: parent; color: "#c01424"; z: -1 }
     TextInput {
       id: search
       width: parent.width
@@ -53,6 +54,33 @@ Item {
       return point.x >= -0.1 && point.y >= -0.1
         && point.x + item.width <= panel.width + 0.1
         && point.y + item.height <= panel.height + 0.1
+    }
+
+    function cleanup() {
+      panel.requestedWidth = Qt.binding(() => display.sizing.contentWidth)
+      panel.requestedHeight = Qt.binding(() => display.sizing.contentHeight)
+      panel.radius = 0
+      panel.border.width = 0
+      display.height = 720
+    }
+
+    function test_constrained_content_preserves_the_fixed_frame() {
+      panel.radius = 20
+      panel.border.width = 1
+      panel.border.color = "white"
+      panel.requestedWidth = panel.width + 80
+      panel.requestedHeight = panel.height + 80
+      waitForValue(panel.viewport, "interactive", true)
+      panel.viewport.contentX = 30
+      panel.viewport.contentY = 30
+      waitForFrame(panel)
+      const pixels = grabImage(panel)
+      verify(Qt.colorEqual(pixels.pixel(0, Math.floor(panel.height / 2)), "white"), "scrolling content must not cover the left frame")
+      verify(!Qt.colorEqual(pixels.pixel(1, 1), "#c01424"), "scrolling content must not square off the rounded corner")
+      panel.requestedWidth = Qt.binding(() => display.sizing.contentWidth)
+      panel.requestedHeight = Qt.binding(() => display.sizing.contentHeight)
+      panel.radius = 0
+      panel.border.width = 0
     }
 
     function test_resize_reveals_existing_footer_focus() {

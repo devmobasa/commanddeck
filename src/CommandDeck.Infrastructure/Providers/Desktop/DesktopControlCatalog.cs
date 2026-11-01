@@ -13,7 +13,12 @@ internal sealed record DesktopControl(
 {
     public bool CloseAfterAction { get; init; }
 
+    public DesktopControlState? State { get; init; }
+
     public string Tool => Program ?? Argv[0];
+
+    // A toggle is also found by the names it takes in either state.
+    public string SearchKeywords => State is null ? Keywords : $"{Keywords} toggle {State.TitleWhenOn} {State.TitleWhenOff}";
 
     public IReadOnlyList<string> RequiredTools => Program is null ? [Argv[0]] : [Program, Argv[0]];
 }
@@ -28,6 +33,7 @@ internal static class DesktopControlCatalog
     private const string AudioKeywords = "volume sound audio speaker output";
     private const string MediaKeywords = "media music player song playerctl";
     private const int VolumeStepPercent = 5;
+    private static readonly string[] RadioProbe = ["rfkill", "-J"];
 
     public static IReadOnlyList<DesktopControl> System { get; } =
     [
@@ -35,19 +41,33 @@ internal static class DesktopControlCatalog
             ["wpctl", "set-volume", "-l", "1.0", Sink, $"{VolumeStepPercent}%+"] ),
         new( "volume-down", "Volume Down", "Audio", AudioKeywords + " quieter lower decrease", "audio-volume-low",
             ["wpctl", "set-volume", Sink, $"{VolumeStepPercent}%-"] ),
-        new( "volume-mute", "Toggle Mute", "Audio", AudioKeywords + " mute unmute silence", "audio-volume-muted", ["wpctl", "set-mute", Sink, "toggle"] ),
+        new( "volume-mute", "Toggle Mute", "Audio", AudioKeywords + " mute unmute silence", "audio-volume-muted", ["wpctl", "set-mute", Sink, "toggle"] )
+        {
+            State = new( ["wpctl", "get-volume", Sink], DesktopControlProbes.ReadMuted, "Unmute", "Mute", "Sound is muted", "Sound is on" )
+        },
         SetVolume( 0 ),
         SetVolume( 25 ),
         SetVolume( 50 ),
         SetVolume( 75 ),
         SetVolume( 100 ),
         new( "microphone-mute", "Toggle Microphone Mute", "Microphone", "mic microphone input mute unmute", "microphone-sensitivity-muted",
-            ["wpctl", "set-mute", Source, "toggle"] ),
+            ["wpctl", "set-mute", Source, "toggle"] )
+        {
+            State = new( ["wpctl", "get-volume", Source], DesktopControlProbes.ReadMuted, "Unmute Microphone", "Mute Microphone", "Microphone is muted",
+                "Microphone is on" )
+        },
         new( "media-play-pause", "Play / Pause Media", "Media", MediaKeywords + " play pause resume", "media-playback-start", ["playerctl", "play-pause"] ),
         new( "media-next", "Next Track", "Media", MediaKeywords + " next skip forward", "media-skip-forward", ["playerctl", "next"] ),
         new( "media-previous", "Previous Track", "Media", MediaKeywords + " previous back rewind", "media-skip-backward", ["playerctl", "previous"] ),
-        new( "wifi-toggle", "Toggle Wi-Fi", "Wireless", "wifi wireless wlan network radio on off", "network-wireless", ["rfkill", "toggle", "wlan"] ),
+        new( "wifi-toggle", "Toggle Wi-Fi", "Wireless", "wifi wireless wlan network radio on off", "network-wireless", ["rfkill", "toggle", "wlan"] )
+        {
+            State = new( RadioProbe, DesktopControlProbes.ReadRadioOn( "wlan" ), "Turn Wi-Fi Off", "Turn Wi-Fi On", "Wi-Fi is on", "Wi-Fi is off" )
+        },
         new( "bluetooth-toggle", "Toggle Bluetooth", "Wireless", "bluetooth bt wireless radio on off", "bluetooth-active", ["rfkill", "toggle", "bluetooth"] )
+        {
+            State = new( RadioProbe, DesktopControlProbes.ReadRadioOn( "bluetooth" ), "Turn Bluetooth Off", "Turn Bluetooth On", "Bluetooth is on",
+                "Bluetooth is off" )
+        }
     ];
 
     // hyprpicker freezes the screen as it starts, so it has to start after the

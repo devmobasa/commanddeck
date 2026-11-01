@@ -6,7 +6,7 @@ namespace CommandDeck;
 // Opening paths and URLs, launching desktop entries and typed programs, editing
 // at a line, and running commands and scripts: the actions of indexed,
 // configured and command-mode rows.
-internal sealed class DesktopActionHandler( EditorLauncher editor ) : ILinuxActionHandler
+internal sealed class DesktopActionHandler( EditorLauncher editor, ApplicationWindowFocus? windowFocus = null ) : ILinuxActionHandler
 {
     private const int ShellTimeoutMinutes = 5;
 
@@ -39,7 +39,7 @@ internal sealed class DesktopActionHandler( EditorLauncher editor ) : ILinuxActi
                 .ConfigureAwait( false ),
             ActionKinds.OpenUrl => await OpenUrlAsync( query, action, cancellationToken )
                 .ConfigureAwait( false ),
-            ActionKinds.LaunchDesktop => await LaunchDesktopAsync( action, cancellationToken )
+            ActionKinds.LaunchDesktop => await FocusOrLaunchDesktopAsync( action, cancellationToken )
                 .ConfigureAwait( false ),
             ActionKinds.LaunchArgv => await LaunchArgvAsync( action, cancellationToken )
                 .ConfigureAwait( false ),
@@ -83,6 +83,21 @@ internal sealed class DesktopActionHandler( EditorLauncher editor ) : ILinuxActi
         return await ManagedLaunch
             .LaunchApplicationAsync( new DesktopEntryCommand { Executable = ToolExecutables.DesktopOpener, Arguments = [url] }, terminal: false,
                 cancellationToken )
+            .ConfigureAwait( false );
+    }
+
+    // An application that already has a window is focused instead of launched again.
+    private async ValueTask<ActionExecutionResult> FocusOrLaunchDesktopAsync( CommandAction action, CancellationToken cancellationToken )
+    {
+        if ( windowFocus is not null &&
+             await windowFocus
+                 .TryFocusAsync( action, cancellationToken )
+                 .ConfigureAwait( false ) is { } focused )
+        {
+            return focused;
+        }
+
+        return await LaunchDesktopAsync( action, cancellationToken )
             .ConfigureAwait( false );
     }
 

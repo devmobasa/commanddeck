@@ -13,6 +13,7 @@ public static partial class Program
         await RunAsync( "quicklinks CLI adds edits lists validates and removes durable links", QuicklinkCliManagesDurableStateAsync );
         await RunAsync( "picker emits only selected values and honors cancellation", PickerReturnsOnlyTheSelectedValueAsync );
         await RunAsync( "picker build and installer deliver every relative QML dependency", PickerDeliveryCarriesEveryRelativeDependencyAsync );
+        Run( "picker dependency guard rejects missing imports and unregistered singletons", PickerDependencyGuardRejectsMissingImportsAndSingletons );
         await RunAsync( "release archive carries install.sh and its helpers and dry-runs without changes", ReleasePackageInstallsFromItsOwnFolderAsync );
         await RunAsync( "release install rolls back a failed update and skips an unchanged plugin backup", ReleaseInstallRollsBackAFailedUpdateAsync );
         await RunAsync( "release install rolls back when a signal interrupts it", ReleaseInstallRollsBackWhenInterruptedAsync );

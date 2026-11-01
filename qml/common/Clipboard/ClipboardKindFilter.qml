@@ -45,7 +45,7 @@ FocusScope {
     readonly property int inset: Math.max(2, Math.round(3 * root.theme.scale))
     anchors.fill: parent
     implicitWidth: segmentRow.implicitWidth + inset * 2
-    radius: Math.max(4, root.theme.radiusSmall)
+    radius: root.theme.radiusSmall
     color: root.theme.surface
     border.width: 1
     border.color: root.theme.separator

@@ -154,7 +154,7 @@ Item {
       const filter = actionPanel.filterControl
       waitForCondition(function() { return filter.activeFocus })
       compare(filter.font.family, theme.fontFamily)
-      verify(Qt.colorEqual(filter.background.color, theme.surfaceStrong), "the field uses the launcher surface")
+      verify(Qt.colorEqual(filter.background.color, theme.withAlpha(theme.text, 0.06)), "the field uses the launcher surface")
       verify(Qt.colorEqual(filter.background.border.color, theme.accent), "the focused field shows the accent ring")
 
       keyClick(Qt.Key_B)
@@ -199,7 +199,7 @@ Item {
 
     function verifyLauncherInput(field, label) {
       compare(field.font.family, theme.fontFamily, label + " uses the launcher font")
-      verify(Qt.colorEqual(field.background.color, theme.surfaceStrong), label + " uses the launcher surface")
+      verify(Qt.colorEqual(field.background.color, theme.withAlpha(theme.text, 0.06)), label + " uses the launcher surface")
     }
 
     function test_dialog_inputs_match_launcher_inputs() {

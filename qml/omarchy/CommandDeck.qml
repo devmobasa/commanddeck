@@ -19,6 +19,8 @@ Common.CommandDeck {
 
     if (component.status === Component.Ready) {
       component.createObject(root, { launcher: root })
+      const cancellation = Qt.createComponent(Qt.resolvedUrl("hotkey/RecordCancelShortcut.qml"), Component.PreferSynchronous)
+      if (cancellation.status === Component.Ready) cancellation.createObject(root, { launcher: root })
       return
     }
 

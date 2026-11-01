@@ -127,10 +127,13 @@ internal sealed class HerdrActionHandler( HerdrClient? herdr, HerdrWindowActivat
 
     private static bool DoesNotMatchTabTarget( SearchResult result, bool create, string targetKind, string targetId )
     {
+        // A space creates tabs from its own row or from its "Create tab" row.
+        var expectedId = $"{ResultIdPrefixes.Herdr}{targetKind}:{targetId}";
+
         return result.SourceId != SourceIds.Herdr ||
                result.ProviderId != ProviderIds.Herdr ||
                result.Kind != (create ? ResultKinds.Workspace : ResultKinds.Tab) ||
-               result.Id != $"{ResultIdPrefixes.Herdr}{targetKind}:{targetId}" ||
+               result.Id != expectedId && !(create && result.Id == HerdrSearch.NewTabResultPrefix + targetId) ||
                result.Metadata.GetValueOrDefault( HerdrProvider.TargetKindMetadata ) != targetKind ||
                result.Metadata.GetValueOrDefault( HerdrProvider.TargetIdMetadata ) != targetId;
     }

@@ -133,7 +133,7 @@ Rectangle {
       Layout.preferredWidth: root.iconBoxSize
       Layout.preferredHeight: root.iconBoxSize
       Layout.alignment: Qt.AlignVCenter
-      radius: Math.max(4, root.theme.radiusSmall)
+      radius: root.theme.radiusSmall
       color: root.theme.surfaceStrong
       opacity: root.hiddenEverywhere ? 0.45 : 1
 
@@ -170,8 +170,8 @@ Rectangle {
       // A source off in both columns fades so the exceptions stand out.
       color: root.hiddenEverywhere ? root.theme.textMuted : root.theme.text
       font.family: root.theme.fontFamily
-      font.pixelSize: Math.round(root.theme.fontBody * 1.15)
-      font.weight: Font.Medium
+      font.pixelSize: root.theme.fontBody
+      font.weight: Font.Normal
       elide: Text.ElideRight
     }
 

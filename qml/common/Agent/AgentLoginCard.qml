@@ -125,7 +125,7 @@ Rectangle {
       textFormat: Text.PlainText
       text: loginCard.host.login ? String(loginCard.host.login.userCode || "") : ""
       color: loginCard.host.theme.accent
-      font.family: "monospace"
+      font.family: loginCard.host.theme.monoFontFamily
       font.pixelSize: loginCard.host.theme.fontHeading
       font.weight: Font.DemiBold
       Accessible.role: Accessible.StaticText
@@ -141,7 +141,7 @@ Rectangle {
       text: loginCard.host.login ? String(loginCard.host.login.verificationUrl || "") : ""
       color: loginCard.host.theme.textMuted
       wrapMode: Text.WrapAnywhere
-      font.family: "monospace"
+      font.family: loginCard.host.theme.monoFontFamily
       font.pixelSize: loginCard.host.theme.fontSmall
       Accessible.role: Accessible.StaticText
       Accessible.name: "Verification address " + text

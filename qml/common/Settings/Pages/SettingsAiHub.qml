@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import "../../UiConstants.js" as Ui
+import "../../Protocol.js" as Protocol
 
 ColumnLayout {
   id: hub
@@ -52,7 +53,7 @@ ColumnLayout {
     Layout.fillWidth: true
     wheelForwarder: hub.forwardWheel
     searchQuery: hub.host.part_settingsSearch.text
-    searchTerms: "ai features master switch disable all assistant quick answers direct providers templates off"
+    settingId: Protocol.SettingIds.AiFeatures
     theme: hub.host.theme
     title: "AI features"
     description: "One switch for the assistant and quick answers. Both send requests only when you ask."
@@ -81,38 +82,29 @@ ColumnLayout {
     }
   }
 
-  RowLayout {
-    Layout.fillWidth: true
+  SettingsSegmented {
+    id: sectionSwitcher
+    Layout.alignment: Qt.AlignLeft
     visible: hub.host.aiFeaturesEnabled
-    spacing: Math.round(8 * hub.host.theme.scale)
-
+    theme: hub.host.theme
+    tabPerSegment: true
+    Accessible.name: "AI section"
+    showCurrentDescription: false
+    options: [
+      { id: Ui.AiHubSection.Assistant, title: "Assistant", objectName: "aiAssistantSection",
+        accessibleName: "Assistant settings", description: "Signed-in conversations, models, and tool permissions" },
+      { id: Ui.AiHubSection.QuickAnswers, title: "Quick answers", objectName: "aiQuickSection",
+        accessibleName: "Quick answer settings", description: "Direct providers and one-question answers" }
+    ]
+    Component.onCompleted: currentIndex = hub.section === Ui.AiHubSection.Assistant ? 0 : 1
+    Connections {
+      target: hub
+      function onSectionChanged() { sectionSwitcher.currentIndex = hub.section === Ui.AiHubSection.Assistant ? 0 : 1 }
+    }
+    onActivated: index => hub.section = options[index].id
     WheelHandler {
       target: null
       onWheel: event => hub.forwardWheel(event)
-    }
-
-    DeckButton {
-      id: assistantSection
-      objectName: "aiAssistantSection"
-      theme: hub.host.theme
-      kind: hub.section === Ui.AiHubSection.Assistant ? Ui.ButtonVariant.Primary : Ui.ButtonVariant.Secondary
-      text: "Assistant"
-      Accessible.name: "Assistant settings"
-      Accessible.description: "Signed-in conversations, models, and tool permissions"
-      onClicked: hub.section = Ui.AiHubSection.Assistant
-      Keys.onRightPressed: quickSection.forceActiveFocus()
-    }
-
-    DeckButton {
-      id: quickSection
-      objectName: "aiQuickSection"
-      theme: hub.host.theme
-      kind: hub.section === Ui.AiHubSection.QuickAnswers ? Ui.ButtonVariant.Primary : Ui.ButtonVariant.Secondary
-      text: "Quick answers"
-      Accessible.name: "Quick answer settings"
-      Accessible.description: "Direct providers and one-question answers"
-      onClicked: hub.section = Ui.AiHubSection.QuickAnswers
-      Keys.onLeftPressed: assistantSection.forceActiveFocus()
     }
   }
 

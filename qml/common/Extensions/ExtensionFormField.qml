@@ -84,7 +84,7 @@ ColumnLayout {
     Keys.onBacktabPressed: root.traverse(true)
     Keys.onEscapePressed: root.cancel()
     background: Rectangle {
-      radius: Math.max(4, root.theme.radiusSmall)
+      radius: root.theme.radiusSmall
       color: checkbox.activeFocus ? checkbox.tint(root.theme.accent, 0.1) : "transparent"
       border.width: checkbox.activeFocus ? 2 : 0
       border.color: root.theme.focusRing

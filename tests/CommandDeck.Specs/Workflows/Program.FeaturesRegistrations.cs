@@ -83,7 +83,7 @@ public static partial class Program
                         PayloadJson = PayloadWriter.Create(
                             (ResultMetadataKeys.Application.DesktopFile, "/usr/share/applications/org.example.Workbench.desktop"),
                             (ResultMetadataKeys.Application.DesktopId, "org.example.Workbench.desktop"),
-                            (ResultMetadataKeys.Application.Exec, "workbench %U") ),
+                            (ResultMetadataKeys.Application.Exec, "workbench %U"), (ResultMetadataKeys.Application.Terminal, "true") ),
                         ProviderId = ProviderIds.Applications,
                         SourceId = SourceIds.Applications
                     };
@@ -94,6 +94,16 @@ public static partial class Program
                 await catalog.ReplaceAllAsync( Items( ), null, CancellationToken.None );
 
                 var zed = (await catalog.SearchAsync( QueryParser.Parse( "zed" ), 10, CancellationToken.None )).Single( );
+
+                // Launch focuses an open window; Open New Window always starts another,
+                // and a terminal entry, which never focuses, offers only Launch.
+                Equal( "launch|launch-new", string.Join( '|', zed.Actions.Select( static action => action.Id ) ) );
+                Equal( "Open New Window", zed.Actions[1].Title );
+                Equal( "true", zed.Actions[1].Arguments[ActionArgumentNames.NewInstance] );
+                True( !zed.Actions[0].Arguments.ContainsKey( ActionArgumentNames.NewInstance ) );
+
+                var workbench = (await catalog.SearchAsync( QueryParser.Parse( "workbench" ), 10, CancellationToken.None )).Single( );
+                Equal( "launch", workbench.Actions.Single( ).Id );
 
                 await catalog.SetAliasAsync( zed, "z", CancellationToken.None );
 

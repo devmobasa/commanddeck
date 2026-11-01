@@ -48,10 +48,10 @@ EventPathFixture {
       compare(toggle.checked, data.initial)
       compare(toggle.Accessible.name, data.label)
 
+      // Enter goes straight to the control the search points at.
+      compare(panel.searchTarget, toggle)
       keyClick(Qt.Key_Return)
-      waitForValue(panel.navigationControl, "activeFocus", true)
-      for (let index = 0; index < 10 && !toggle.activeFocus; index++) keyClick(Qt.Key_Tab)
-      verify(toggle.activeFocus, data.label + " is reachable in the tab order")
+      waitForValue(toggle, "activeFocus", true)
       changes.clear()
 
       keyPress(data.key, data.modifiers)

@@ -116,7 +116,7 @@ Rectangle {
         visible: root.entry !== null
         implicitWidth: kindLabel.implicitWidth + Math.round(14 * root.theme.scale)
         implicitHeight: Math.round(root.theme.fontCaption * 2.1)
-        radius: Math.max(3, root.theme.radiusSmall - 2)
+        radius: Math.max(0, root.theme.radiusSmall - 2)
         color: root.theme.withAlpha(root.theme.accent, 0.18)
 
         Text {

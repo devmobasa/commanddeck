@@ -31,6 +31,7 @@ public sealed class WebSearchProvider : ICommandProvider
     private const string WebSearchPrefix = "web-search:";
 
     private const string CopyUrlActionId = "copy-url";
+    private const string SaveQuicklinkActionId = "save-quicklink";
     private const string EngineIdMetadata = "engineId";
     private const string AliasMetadata = "alias";
     private const string OpenActionId = "open";
@@ -194,6 +195,19 @@ public sealed class WebSearchProvider : ICommandProvider
                 Title = "Copy URL",
                 Kind = ActionKinds.CopyText,
                 Arguments = new TextActionPayload( url ).ToArguments( )
+            },
+
+            // Opens the Quicklinks editor with this address filled in.
+            new CommandAction
+            {
+                Id = SaveQuicklinkActionId,
+                Title = "Save as Quicklink…",
+                Kind = ActionKinds.OpenSettings,
+                Arguments = new Dictionary<string, string>( StringComparer.Ordinal )
+                {
+                    [ActionArgumentNames.SettingId] = SettingIds.Quicklinks,
+                    [ActionArgumentNames.Url] = url
+                }
             }
         ]
     };

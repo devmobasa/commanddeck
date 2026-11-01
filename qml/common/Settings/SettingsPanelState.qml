@@ -7,6 +7,7 @@ import "../Protocol.js" as Protocol
 // Settings inputs, derived summaries, and control references shared by the pages.
 FocusScope {
   id: settingsState
+  property var shortcutController: null
   required property var owner
   required property var parts
   readonly property var part_aiHub: parts.aiHub
@@ -105,9 +106,17 @@ FocusScope {
   readonly property var part_aiTemplateName: parts.aiScroll.part_aiTemplateName
   readonly property var part_aiTemplateSystem: parts.aiScroll.part_aiTemplateSystem
   readonly property var part_aiTemplateUser: parts.aiScroll.part_aiTemplateUser
+  readonly property var part_desktopShortcutsCard: parts.shortcutsScroll.part_desktopShortcutsCard
   readonly property var part_shortcutsCard: parts.shortcutsScroll.part_shortcutsCard
   readonly property var part_shortcutRepeater: parts.shortcutsScroll.part_shortcutRepeater
   readonly property var part_settingsSearch: parts.settingsSearch
+  readonly property var part_spotlight: parts.spotlight
+  readonly property var part_daemonDiagnosticsCard: parts.diagnosticsScroll.part_daemonDiagnosticsCard
+  // The daemon's status reply, read when the Diagnostics page is shown.
+  property var runtimeStatus: null
+  signal runtimeStatusRequested()
+  readonly property var part_fontCard: parts.customizationScroll.part_fontCard
+  readonly property var part_interfaceFont: parts.customizationScroll.part_interfaceFont
   readonly property var part_displayCard: parts.customizationScroll.part_displayCard
   readonly property var part_displaySizeSlider: parts.customizationScroll.part_displaySizeSlider
   readonly property var part_displaySizeReset: parts.customizationScroll.part_displaySizeReset
@@ -270,6 +279,8 @@ FocusScope {
     return index >= 0 ? index : 0
   }
   // Panel transparency (QML-only, persisted outside the daemon snapshot).
+  property string interfaceFont: "sans"
+  signal interfaceFontSelected(string choice)
   property bool panelTransparencyEnabled: false
   property int panelTransparencyPercent: 20
   // Why the last save was rejected (the deck owns it); empty when saves succeed.
@@ -281,12 +292,13 @@ FocusScope {
   property string currentPage: Ui.SettingsPage.Search
   property bool agentModelsAutoRequested: false
   readonly property var pages: [
-    { id: Ui.SettingsPage.Search, title: "Search", subtitle: "Sources, fallback, motion", icon: "⌕" },
-    { id: Ui.SettingsPage.Ai, title: "AI", subtitle: "Assistant and quick answers", icon: "✦" },
-    { id: Ui.SettingsPage.Editors, title: "Editors", subtitle: "Open files and lines", icon: "✎" },
-    { id: Ui.SettingsPage.Filters, title: "Filters", subtitle: "Aliases and saved searches", icon: "⚲" },
-    { id: Ui.SettingsPage.Shortcuts, title: "Shortcuts", subtitle: "Effective bindings", icon: "⌘" },
-    { id: Ui.SettingsPage.Customization, title: "Customization", subtitle: "Size, colors, favorites", icon: "☆" }
+    { id: Ui.SettingsPage.Search, title: "Search", subtitle: "Sources, fallback, motion", icon: "⌕", iconColor: "#3d8bfd", group: 0 },
+    { id: Ui.SettingsPage.Ai, title: "AI", subtitle: "Assistant and quick answers", icon: "✦", iconColor: "#a970ff", group: 0 },
+    { id: Ui.SettingsPage.Editors, title: "Editors", subtitle: "Open files and lines", icon: "✎", iconColor: "#30b85a", group: 1 },
+    { id: Ui.SettingsPage.Filters, title: "Filters", subtitle: "Aliases and saved searches", icon: "⚲", iconColor: "#f59e0b", group: 1 },
+    { id: Ui.SettingsPage.Shortcuts, title: "Shortcuts", subtitle: "Effective bindings", icon: "⌘", iconColor: "#7d8590", group: 1 },
+    { id: Ui.SettingsPage.Customization, title: "Customization", subtitle: "Size, colors, favorites", icon: "☆", iconColor: "#f0509a", group: 2 },
+    { id: Ui.SettingsPage.Diagnostics, title: "Diagnostics", subtitle: "Version, index, search timings", icon: "ⓘ", iconColor: "#5b6573", group: 3 }
   ]
   readonly property var pageCards: ({
     search: [settingsState.owner.part_fileSearchCard, settingsState.owner.part_sourcesCard, settingsState.owner.part_heyCard, settingsState.owner.part_behaviorCard, settingsState.owner.part_indexRootsCard, settingsState.part_quicklinksCard],
@@ -298,8 +310,9 @@ FocusScope {
       settingsState.owner.part_trustCard, settingsState.owner.part_limitsCard, settingsState.owner.part_grantsCard,
       settingsState.owner.part_diagnosticsCard, settingsState.owner.part_aiManagementCard,
       settingsState.owner.part_aiProvidersCard, settingsState.owner.part_templatesCard],
-    shortcuts: [settingsState.owner.part_shortcutsCard],
-    customization: [settingsState.owner.part_displayCard, settingsState.owner.part_layoutCard, settingsState.owner.part_closingCard, settingsState.owner.part_colorsCard, settingsState.owner.part_transparencyCard, settingsState.owner.part_favoritesCard, settingsState.owner.part_hiddenItemsCard, settingsState.owner.part_dataCard, settingsState.owner.part_resetCard]
+    shortcuts: [settingsState.owner.part_shortcutsCard, settingsState.owner.part_desktopShortcutsCard],
+    diagnostics: [settingsState.owner.part_daemonDiagnosticsCard],
+    customization: [settingsState.owner.part_fontCard, settingsState.owner.part_displayCard, settingsState.owner.part_layoutCard, settingsState.owner.part_closingCard, settingsState.owner.part_colorsCard, settingsState.owner.part_transparencyCard, settingsState.owner.part_favoritesCard, settingsState.owner.part_hiddenItemsCard, settingsState.owner.part_dataCard, settingsState.owner.part_resetCard]
   })
   readonly property var filteredPages: owner.pages.filter(page =>
     page.id === Ui.SettingsPage.Ai && !settingsState.owner.aiFeaturesEnabled

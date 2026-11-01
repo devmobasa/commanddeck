@@ -12,7 +12,7 @@ public static partial class Program
             probed.Add( tool );
 
             return installed.Contains( tool );
-        } );
+        }, stateRunner: UnknownStateAsync );
 
         SearchCoordinator search = new( [provider], new SearchOptions( ) );
 
@@ -88,6 +88,73 @@ public static partial class Program
         Equal( 0, probed.Count );
     }
 
+    private static async Task DesktopTogglesAreNamedForWhatTheyWillDoNextAsync( )
+    {
+        Dictionary<string, string> outputs = new( StringComparer.Ordinal )
+        {
+            ["wpctl get-volume @DEFAULT_AUDIO_SINK@"] = "Volume: 0.40 [MUTED]\n",
+            ["wpctl get-volume @DEFAULT_AUDIO_SOURCE@"] = "Volume: 1.00\n",
+            ["rfkill -J"] = """
+                            {"rfkilldevices":[{"id":0,"type":"bluetooth","device":"hci0","soft":"blocked","hard":"unblocked"},
+                            {"id":1,"type":"wlan","device":"phy0","soft":"unblocked","hard":"unblocked"}]}
+                            """
+        };
+
+        List<string> probes = [];
+        DesktopControlsProvider provider = new( static tool => tool is "wpctl" or "rfkill", stateRunner: ( file, arguments, _, _ ) =>
+        {
+            var call = string.Join( ' ', [file, .. arguments] );
+            probes.Add( call );
+            var found = outputs.TryGetValue( call, out var output );
+
+            return ValueTask.FromResult( new ProcessResult { ExitCode = found ? 0 : 1, StandardOutput = output ?? "", StandardError = "" } );
+        } );
+
+        SearchCoordinator search = new( [provider], new SearchOptions( ) );
+
+        async Task<IReadOnlyList<SearchResult>> FindAsync( string query ) =>
+            await search.SearchAsync( new SearchRequest { Query = query, Limit = 50 }, default );
+
+        async Task<SearchResult> RowAsync( string query, string id ) =>
+            (await FindAsync( query )).Single( result => result.Id == id );
+
+        var mute = await RowAsync( "mute", "desktop:volume-mute" );
+        Equal( "Unmute", mute.Title );
+        Equal( "Audio · Sound is muted", mute.Subtitle );
+        Equal( "Unmute", mute.Actions.Single( ).Title );
+        Equal( "wpctl\u001fset-mute\u001f@DEFAULT_AUDIO_SINK@\u001ftoggle", mute.Actions.Single( ).Arguments["argv"] );
+        Equal( "Mute Microphone", (await RowAsync( "mute", "desktop:microphone-mute" )).Title );
+
+        // Both radios share one rfkill listing per search.
+        probes.Clear( );
+        var radios = await FindAsync( "radio" );
+        var wifi = radios.Single( static result => result.Id == "desktop:wifi-toggle" );
+        Equal( "Turn Wi-Fi Off", wifi.Title );
+        Equal( "Wireless · Wi-Fi is on", wifi.Subtitle );
+        Equal( "Turn Bluetooth On", radios.Single( static result => result.Id == "desktop:bluetooth-toggle" ).Title );
+        Equal( 1, probes.Count( static call => call == "rfkill -J" ) );
+
+        // The names a toggle takes in either state still find it.
+        Equal( "desktop:wifi-toggle", (await FindAsync( "turn off wifi" ))[0].Id );
+        True( (await FindAsync( "unmute" )).Any( static result => result.Id == "desktop:volume-mute" ) );
+
+        // A failed or unreadable probe keeps the toggle title.
+        outputs["wpctl get-volume @DEFAULT_AUDIO_SINK@"] = "not a volume";
+        outputs.Remove( "rfkill -J" );
+        var unknown = await RowAsync( "mute", "desktop:volume-mute" );
+        Equal( "Toggle Mute", unknown.Title );
+        Equal( "Audio · wpctl", unknown.Subtitle );
+        Equal( "Toggle Wi-Fi", (await RowAsync( "wifi", "desktop:wifi-toggle" )).Title );
+
+        // A search that matches no toggle starts no probe.
+        probes.Clear( );
+        Equal( "desktop:volume-50", (await FindAsync( "volume 50" ))[0].Id );
+        Equal( 0, probes.Count );
+    }
+
+    private static ValueTask<ProcessResult> UnknownStateAsync( string file, IReadOnlyList<string> arguments, TimeSpan timeout, CancellationToken token ) =>
+        ValueTask.FromResult( new ProcessResult { ExitCode = 1, StandardOutput = "", StandardError = "" } );
+
     private static async Task DesktopControlsRunLiteralArgvThroughRunArgvAsync( )
     {
         if ( !OperatingSystem.IsLinux( ) )
@@ -142,7 +209,11 @@ public static partial class Program
             True( !failed.Succeeded );
             Equal( "'playerctl' exited with code 1.", failed.Message );
             True( failed.DetailMarkdown?.Contains( "No players found", StringComparison.Ordinal ) == true );
-            Equal( 3, (await File.ReadAllLinesAsync( capture )).Length );
+
+            // Searching a toggle reads its state first; only the three actions changed anything.
+            var calls = await File.ReadAllLinesAsync( capture );
+            True( calls.Contains( "wpctl|get-volume|@DEFAULT_AUDIO_SOURCE@" ) && calls.Contains( "rfkill|-J" ), string.Join( '\n', calls ) );
+            Equal( 3, calls.Count( static call => call is not "wpctl|get-volume|@DEFAULT_AUDIO_SOURCE@" and not "rfkill|-J" ) );
         }
         finally
         {

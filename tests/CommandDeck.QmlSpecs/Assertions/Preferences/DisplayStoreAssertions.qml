@@ -17,12 +17,21 @@ QtObject {
   property bool protectRecommended: false
   property bool recommendedReverted: false
   property int completedReads: 0
+  property int fontWrites: 0
+  property CommandDeck.InterfaceFontStore fontReader: CommandDeck.InterfaceFontStore {
+    stateDir: spec.frontend.coachStateDir
+  }
+  property Connections fontSaved: Connections {
+    target: spec.preferences.interfaceFontStore.file
+    function onSaved() { spec.fontWrites++ }
+  }
   property int readsBeforeRecommended: 0
   readonly property var store: preferences.displayScaleStore
   property var frontend: QtObject {
     property bool testMode: true
     property bool daemonAvailable: false
     property string coachStateDir: decodeURIComponent(Qt.resolvedUrl(".").toString().replace(/^file:\/\//, ""))
+    property string interfaceFont: "sans"
     property int displaySizePercent: 100
     property bool panelTransparencyEnabled: false
     property int panelTransparencyPercent: 20
@@ -147,6 +156,23 @@ QtObject {
           preferences.layoutStore.load()
           host.expect(frontend.launcherWidthPercent === 125 && frontend.launcherHeightPercent === 135,
             "reloading layout preferences restores the durable panel choices")
+          fontReader.load()
+          host.expect(fontReader.choice === "sans", "an absent interface font file defaults to Sans")
+          preferences.interfaceFontStore.set("shell")
+        } },
+      { name: "Interface font persists independently of the store that wrote it", ready: () => fontWrites > 0,
+        run: () => {
+          fontReader.load()
+          host.expect(fontReader.choice === "shell" && frontend.interfaceFont === "shell",
+            "a separate font store reloads the saved Shell font choice")
+          preferences.interfaceFontStore.set("sans")
+        } },
+      { name: "Sans replaces the durable Shell font choice", ready: () => fontWrites > 1,
+        run: () => {
+          fontReader.load()
+          host.expect(fontReader.choice === "sans" && frontend.interfaceFont === "sans",
+            "Sans persists and is mirrored into the frontend")
+          host.expect(fontReader.normalize("future-font") === "sans", "unknown font choices safely use Sans")
         } }
     ]
     deadline = Date.now() + 30000

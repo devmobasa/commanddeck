@@ -9,6 +9,9 @@ internal static class SearchLogging
 {
     public const long SlowThresholdMilliseconds = 100;
 
+    // Recent durations for Settings → Diagnostics; never any query text.
+    public static SearchTimingRecorder Timings { get; } = new( );
+
     public const string CompletedStatus = "completed";
     public const string CancelledStatus = "cancelled";
     public const string FailedStatus = "failed";
@@ -26,6 +29,11 @@ internal static class SearchLogging
     public static void LogSearchCompletion( long requestId, int queryLength, long started, int resultCount, string status, string? errorType = null )
     {
         var durationMilliseconds = ( long ) Stopwatch.GetElapsedTime( started ).TotalMilliseconds;
+        if ( status == CompletedStatus )
+        {
+            Timings.RecordSearch( durationMilliseconds );
+        }
+
         var error = errorType is null ? string.Empty : $" error_type={errorType}";
         var message = $"event=search.complete request_id={requestId} query_chars={queryLength} " +
                       $"duration_ms={durationMilliseconds} result_count={resultCount} status={status}{error}";
@@ -46,6 +54,9 @@ internal static class SearchLogging
 
     public static void LogProviderDiagnostic( SearchProviderDiagnostic diagnostic )
     {
+        ArgumentNullException.ThrowIfNull( diagnostic );
+        Timings.RecordProvider( diagnostic.ProviderId, diagnostic.DurationMilliseconds, diagnostic.Outcome );
+
         string? error;
         if ( diagnostic.ErrorType is null )
         {

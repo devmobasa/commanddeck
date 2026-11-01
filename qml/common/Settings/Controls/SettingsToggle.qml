@@ -12,6 +12,7 @@ Switch {
   required property var theme
   function tint(value, amount) { return Qt.rgba(value.r, value.g, value.b, amount) }
   property string help: ""
+  readonly property bool settingsRow: true
 
   // Tab and Shift+Tab stay inside the settings dialog.
   Keys.priority: Keys.BeforeItem
@@ -25,10 +26,11 @@ Switch {
     event.accepted = true
   }
 
-  readonly property int pillWidth: Math.round(42 * root.theme.scale)
-  readonly property int pillHeight: Math.round(24 * root.theme.scale)
+  readonly property int pillWidth: Math.round(root.pillHeight * 1.75)
+  readonly property int pillHeight: Math.round(root.theme.fontBody * 1.45)
 
-  implicitHeight: Math.max(root.pillHeight, labelColumn.implicitHeight) + Math.round(12 * root.theme.scale)
+  implicitHeight: Math.max(Math.round(root.theme.fontBody * 2.75), Math.max(root.pillHeight, labelColumn.implicitHeight) + Math.round(16 * root.theme.scale))
+  opacity: root.enabled ? 1 : 0.45
   implicitWidth: labelColumn.implicitWidth + root.pillWidth + spacing
   spacing: Math.round(14 * root.theme.scale)
   hoverEnabled: true
@@ -41,18 +43,25 @@ Switch {
     height: root.pillHeight
     radius: height / 2
     color: root.checked
-      ? root.tint(root.theme.accent, root.enabled ? 0.85 : 0.4)
-      : root.tint(root.theme.text, 0.14)
-    border.width: root.activeFocus ? 2 : 1
-    border.color: root.activeFocus ? root.theme.focusRing : root.theme.separator
+      ? root.theme.accent
+      : root.tint(root.theme.text, 0.16)
+    Rectangle {
+      anchors.fill: parent
+      anchors.margins: -2
+      radius: height / 2
+      visible: root.activeFocus
+      color: "transparent"
+      border.width: 2
+      border.color: root.theme.focusRing
+    }
 
     Rectangle {
-      x: root.checked ? parent.width - width - 3 : 3
-      y: 3
-      width: parent.height - 6
+      x: root.checked ? parent.width - width - 2 : 2
+      y: 2
+      width: parent.height - 4
       height: width
       radius: width / 2
-      color: root.checked ? root.theme.selectedText : root.theme.text
+      color: root.checked ? "#f7f9fc" : root.tint(root.theme.text, 0.85)
       Behavior on x { NumberAnimation { duration: root.theme.durationFast !== undefined ? root.theme.durationFast : 90 } }
     }
   }
@@ -77,8 +86,8 @@ Switch {
         color: root.enabled ? root.theme.text : root.theme.textFaint
         wrapMode: Text.Wrap
         font.family: root.theme.fontFamily
-        font.pixelSize: Math.round(root.theme.fontBody * 1.15)
-        font.weight: Font.Medium
+        font.pixelSize: root.theme.fontBody
+        font.weight: Font.Normal
       }
 
       Text {
@@ -89,7 +98,7 @@ Switch {
         color: root.theme.textMuted
         wrapMode: Text.Wrap
         font.family: root.theme.fontFamily
-        font.pixelSize: root.theme.fontBody
+        font.pixelSize: root.theme.fontSmall
       }
     }
   }

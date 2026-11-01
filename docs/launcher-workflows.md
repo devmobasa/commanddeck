@@ -283,11 +283,11 @@ the tool's error output.
 | Commands | Literal argv |
 |---|---|
 | Volume Up / Volume Down | `wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+` / `5%-` |
-| Toggle Mute | `wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle` |
+| Mute / Unmute | `wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle` |
 | Set Volume to 0%, 25%, 50%, 75%, 100% | `wpctl set-volume @DEFAULT_AUDIO_SINK@ 50%` |
-| Toggle Microphone Mute | `wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle` |
+| Mute Microphone / Unmute Microphone | `wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle` |
 | Play / Pause Media, Next Track, Previous Track | `playerctl play-pause`, `next`, `previous` |
-| Toggle Wi-Fi / Toggle Bluetooth | `rfkill toggle wlan` / `rfkill toggle bluetooth` |
+| Turn Wi-Fi On or Off / Turn Bluetooth On or Off | `rfkill toggle wlan` / `rfkill toggle bluetooth` |
 
 Each command is one literal argument vector, never a shell string. A command
 whose tool is not on the daemon's `PATH` is left out of the results instead of
@@ -295,6 +295,13 @@ showing an error. Wi-Fi and Bluetooth use the rfkill soft block, the same switch
 that Omarchy's Bluetooth power script uses, so NetworkManager, iwd, and BlueZ
 follow it. Search needs at least two characters and does no work on bare Home.
 Turn the **Desktop controls** source off in Settings to remove these rows.
+
+A toggle is named for what Enter will do, and its subtitle says the current
+state: with Wi-Fi on, the row reads **Turn Wi-Fi Off** and **Wi-Fi is on**. The
+daemon reads the state only when a toggle matches your search: `wpctl get-volume`
+for the sink or source, and one `rfkill -J` listing for both radios, each within
+250 ms. If the state cannot be read, the row keeps its **Toggle …** name. Both
+names find the row, so `unmute` and `turn off wifi` work.
 
 ### Color picker
 
@@ -329,8 +336,8 @@ launcher. Type `left half`, `center third`, `maximize`, `tile`, `fullscreen`,
 | First Two Thirds, Last Two Thirds | Two columns of three |
 | Center Window | Keeps the window's size and centers it |
 | Maximize Window / Almost Maximize Window | The whole work area / 90% of it, centered |
-| Toggle Floating / Tile Window | Floats or tiles the window |
-| Toggle Fullscreen | Hyprland fullscreen |
+| Float Window / Tile Window | Floats or tiles the window |
+| Enter Fullscreen / Exit Fullscreen | Hyprland fullscreen |
 | Move Window to Next / Previous Monitor | The neighbouring enabled monitor, in monitor ID order |
 | Move Window to Workspace 1–10 | Moves the window and follows it |
 
@@ -341,6 +348,10 @@ row. At invocation it checks that the address is still a client, then dispatches
 only to that address. It never acts on whatever has focus at dispatch time. A
 closed window reports an error; search again.
 
+The toggles are named for that window: a tiled window offers **Float Window**,
+and a floating one only **Tile Window**. A fullscreen window offers **Exit
+Fullscreen**; any other window, including a maximized one, **Enter Fullscreen**.
+
 Hyprland tiles windows, so a placement floats the window first and leaves
 fullscreen if needed. **Tile Window** returns it to the layout. Placements use
 the work area of the window's monitor from `hyprctl -j monitors`: the logical
@@ -349,6 +360,56 @@ thirds share edges, so adjacent placements do not overlap. Gaps are not added.
 Every dispatch must answer `ok`. A Lua warning stops the sequence and is shown
 as a failure, even when `hyprctl` exits with status zero. Without `hyprctl`, a
 focused window, or a second monitor, the affected rows are not shown.
+
+## Hyprland keys
+
+Rows show the Hyprland key that already runs them, so you can learn it: with
+Omarchy's bindings, **Obsidian** shows **Super+Shift+O** and the mute control
+shows **XF86AudioMute**. Hyprland's Lua bindings report a description but no
+command, so a row gets a key when its title is a binding's description; only
+applications, Omarchy actions, and commands are matched. The daemon reads
+`hyprctl -j binds` in the background and reuses the list for a minute, so a
+search never waits for it. Compact rows hide the key.
+
+Applications, Omarchy actions, and commands that run a program also offer
+**Copy Hyprland Binding** in their actions. It copies one line for your Lua
+configuration, such as:
+
+```lua
+hl.bind("SUPER + ALT + KEY", hl.dsp.exec_cmd("uwsm-app -- obsidian.desktop"), { description = "Obsidian" }) -- choose KEY
+```
+
+Replace `KEY`, or the whole chord, before adding it to
+`~/.config/hypr/bindings.lua`. Outside a Hyprland session rows show no key and
+offer no binding.
+
+**Settings → Shortcuts** separates CommandDeck shortcuts from Desktop bindings.
+Click a shortcut pill, or focus it and press Enter or Space, then press the new chord.
+Escape cancels. Tab cancels and moves focus. Backspace or Delete asks to remove the shortcut.
+Clipboard History accepts Ctrl+Shift+letter or Ctrl+Alt+letter while CommandDeck is open.
+
+The filter finds descriptions or keys such as `super+space`, `ctrl k`, and `shift super b`.
+It lists all bindings on a key in Hyprland's order. Hyprland can run more than one binding on the same key.
+Submap bindings show their submap and stay read-only.
+
+Desktop changes take priority over the original configuration. CommandDeck can move a binding when its
+source contains a literal binding call loaded before the CommandDeck module. An info button explains
+read-only bindings and offers the source file path. Your bindings and Omarchy defaults stay intact.
+A conflict offers **Replace** or **Cancel**. Replace removes the named binding; other actions on a shared key stay.
+An edit is refused if another action on a key being unbound cannot be recreated, including bindings in other submaps. A key loaded after CommandDeck, or whose load order is unknown,
+must be changed in its source configuration. Changed rows show **Changed** and a restore button.
+The Desktop **…** menu copies the configuration path or changes as Lua, and offers **Reset all…**.
+If an edited binding occupies the key you restore, its original key is restored too, so the actions do not share the restored key.
+
+Launcher rows with a key offer **Change Shortcut…**. Rows with **Copy Hyprland Binding** and no key offer
+**Add Shortcut…**. **Alt+K** opens the selected row's shortcut in Settings, ready to record.
+Added shortcuts appear under **Added by you**; their restore button removes them.
+
+The installed CommandDeck hotkey module captures desktop chords in a temporary recording submap.
+The pill shows **Preparing…** until capture is ready, then **Type Shortcut…**. Keys pressed while preparing are ignored.
+Escape leaves it. Recording also ends on focus loss, hiding Settings, disconnection, or a ten-second timeout.
+Without the module, Hyprland can intercept keys during recording. Manually configured launcher hotkeys
+stay read-only; run `commanddeck hotkey install` to let Settings manage the launcher hotkey.
 
 ## Kill process
 
@@ -377,6 +438,46 @@ reused after the search fails the check, so nothing is signalled; search again.
 A signal is not recorded in usage history. On success the launcher closes like
 other actions.
 
+## Large Type
+
+**Ctrl+L** shows text across the whole screen, so you can read it from a
+distance or show it to someone. It shows a calculator answer if one is selected,
+otherwise your typed search, otherwise the selected row's title. **Escape**,
+**Ctrl+L**, or a click returns to the launcher with the search unchanged.
+
+## Drag files into other apps
+
+Drag a file row out of the launcher and drop it on another app, such as a
+terminal, a browser upload, or a chat. The app receives the same data as a drag
+from a file manager: `text/uri-list` with the path as plain text beside it.
+Any row that opens a path can be dragged.
+
+The launcher hides during the drag so that the pointer can reach the window
+underneath. A drop closes the launcher. If you cancel the drag, the launcher
+returns.
+
+## Scrolling and the pointer
+
+A mouse wheel moves the result list one row per notch, and a section header
+stays above its first row. A touchpad keeps smooth scrolling. Moving the pointer
+selects the row under it without scrolling the list, so a row that is half
+visible does not make the list jump.
+
+## Window fades and corners
+
+Hyprland fades layer windows in and out, and Omarchy turns that off for its own
+panels. The module that `commanddeck hotkey install` writes does the same for
+CommandDeck's windows, so they open and close at once and a screenshot taken
+from the launcher does not catch it fading. If you bind the key yourself, add
+this line to your Hyprland configuration:
+
+```lua
+hl.layer_rule({ match = { namespace = "^commanddeck" }, no_anim = true, animation = "none" })
+```
+
+Corners follow Hyprland's `decoration:rounding`. With `rounding = 0`, cards,
+fields, buttons, and key caps are square.
+
 ## Verification
 
 `dotnet tests/workflows-smoke.cs /path/to/commanddeck` runs all six workflows
@@ -394,6 +495,7 @@ file-selection controls, picker keyboard behavior, and launcher protocol wiring.
 ## Calculator
 
 Type `100 * 5` to show `500` above normal results, then press Enter to copy it.
+Numbers can use thousands separators, as in `1,000 * 1.2` or `(1,000+2)*3`.
 Type `days until 11 sep` for an offline date count, or `weeks until 11 sep` for
 weeks and remaining days. The subtitle shows the resolved dates. Complete
 conversions such as `5 km in miles` and `105F in C` also work inline. Currency
@@ -404,3 +506,13 @@ Use `=` for the full expression grammar, including constants and functions,
 even when inline calculation is off. See the
 [calculator reference](search-and-ranking.md#calculator-and-date-counts)
 for the grammar, `g` and `in` rules, precision, and date-count rules.
+
+Settings uses a search field and grouped page rail on the left, with compact
+rows on the right. On narrow screens the rail becomes a page picker.
+Customization → Interface font defaults to **Sans**; **Shell font** follows
+Omarchy's font. Paths, commands, diagnostic values, and key chords always use
+the shell font. The choice applies immediately and is saved with the other
+launcher appearance preferences in the app's state directory.
+
+The picker shares the cached interface font resolver. Text on accent fills
+uses whichever of white and near-black has higher WCAG contrast.

@@ -20,7 +20,7 @@ SettingsCard {
   title: "Quicklinks"
   description: "Add web searches or links. Use {query} for the search text."
   searchQuery: host.part_settingsSearch.text
-  searchTerms: "quicklinks web searches urls templates aliases icons add edit remove disable enable"
+  settingId: Protocol.SettingIds.Quicklinks
   onEditingChanged: focusSession++
   onRemoveIdChanged: focusSession++
   onVisibleChanged: {
@@ -33,6 +33,17 @@ SettingsCard {
     if (!shouldLoad) { editing = false; removeId = "" }
   }
   Component.onCompleted: { if (shouldLoad && controller) controller.load() }
+
+  // A new user quicklink; Save as Quicklink in the launcher fills in its address.
+  function startNew(urlTemplate, title) {
+    if (!card.controller) return false
+    card.restoreRemove = false
+    card.focusId = ""
+    card.editing = true
+    editor.open({ id: Protocol.QuicklinkIdentity.UserQuicklinkPrefix + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2),
+      title: title, urlTemplate: urlTemplate })
+    return true
+  }
 
   function canRestoreFocus(session) {
     return session === focusSession && visible && shouldLoad && !editing && !removeId
@@ -98,12 +109,7 @@ SettingsCard {
     enabled: !!card.controller
     visible: !card.editing && !card.removeId
     Accessible.name: text
-    onClicked: {
-      card.restoreRemove = false
-      card.focusId = ""
-      card.editing = true
-      editor.open({ id: Protocol.QuicklinkIdentity.UserQuicklinkPrefix + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2), title: "", urlTemplate: "" })
-    }
+    onClicked: card.startNew("", "")
   }
 
   QuicklinkEditor {
@@ -182,7 +188,7 @@ SettingsCard {
           text: (row.modelData.quicklink.alias ? row.modelData.quicklink.alias + " · " : "") + row.modelData.quicklink.urlTemplate
           elide: Text.ElideRight
           color: card.theme.textMuted
-          font.family: card.theme.fontFamily
+          font.family: card.theme.monoFontFamily
           font.pixelSize: card.theme.fontSmall
         }
       }

@@ -68,7 +68,7 @@ public static partial class SavedSearchValidator
     [
         "CTRL+/", "CTRL+,", "CTRL+N", "CTRL+P", "CTRL+HOME", "CTRL+END",
         "CTRL+ENTER", "CTRL+SHIFT+ENTER", "CTRL+U", "CTRL+UP", "CTRL+DOWN",
-        "CTRL+K", "CTRL+D", ClipboardShortcut.ReservedCopyChord, "ALT+SHIFT+A", "ALT+SHIFT+D", "ALT+SHIFT+R", "CTRL+0", "CTRL+I",
+        "CTRL+K", "ALT+K", "CTRL+D", "CTRL+L", ClipboardShortcut.ReservedCopyChord, "ALT+SHIFT+A", "ALT+SHIFT+D", "ALT+SHIFT+R", "CTRL+0", "CTRL+I",
         "CTRL+ALT+UP", "CTRL+ALT+DOWN", "SHIFT+ESCAPE",
         .. Enumerable
             .Range( 1, 9 )

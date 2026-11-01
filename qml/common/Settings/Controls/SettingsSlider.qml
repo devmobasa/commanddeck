@@ -23,7 +23,7 @@ Item {
 
   signal moved()
 
-  implicitHeight: Math.round(38 * root.theme.scale)
+  implicitHeight: Math.round(root.theme.fontBody * 2.1)
   implicitWidth: Math.round(240 * root.theme.scale)
 
   RowLayout {
@@ -54,7 +54,7 @@ Item {
         x: slider.leftPadding
         y: slider.topPadding + (slider.availableHeight - height) / 2
         implicitWidth: Math.round(140 * root.theme.scale)
-        implicitHeight: Math.round(6 * root.theme.scale)
+        implicitHeight: Math.round(4 * root.theme.scale)
         width: slider.availableWidth
         height: implicitHeight
 
@@ -77,10 +77,10 @@ Item {
       handle: Rectangle {
         x: slider.leftPadding + slider.visualPosition * (slider.availableWidth - width)
         y: slider.topPadding + (slider.availableHeight - height) / 2
-        implicitWidth: Math.round(18 * root.theme.scale)
+        implicitWidth: Math.round(root.theme.fontBody * 1.3)
         implicitHeight: implicitWidth
         radius: width / 2
-        color: slider.enabled ? root.theme.selectedText : root.theme.textFaint
+        color: slider.enabled ? "#f7f9fc" : root.theme.textFaint
         border.width: slider.activeFocus ? 2 : 1
         border.color: slider.activeFocus ? root.theme.focusRing : root.theme.separator
       }
@@ -93,9 +93,9 @@ Item {
       text: String(Math.round(slider.value))
         + (root.suffix.length > 0 ? root.suffix : "")
       color: root.enabled ? root.theme.text : root.theme.textFaint
-      font.family: root.theme.fontFamily
-      font.pixelSize: Math.round(root.theme.fontBody * 1.15)
-      font.weight: Font.Medium
+      font.family: root.theme.monoFontFamily
+      font.pixelSize: root.theme.fontBody
+      font.weight: Font.Normal
     }
   }
 }

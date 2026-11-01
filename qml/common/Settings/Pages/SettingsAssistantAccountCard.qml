@@ -14,9 +14,9 @@ SettingsCard {
   readonly property alias part_answerOnlyNote: answerOnlyNote
 
   searchQuery: host.part_settingsSearch.text
-  searchTerms: "assistant enable account sign in out login logout authentication codex claude cursor grok backend"
+  settingId: Protocol.SettingIds.AssistantAccount
   theme: host.theme
-  title: "Assistant"
+  title: "Account"
   description: "Signed-in conversations with Codex, Claude Code, Cursor, or Grok. Tools require your chosen trust level. Ask with codex:, claude:, cursor:, grok:, or ask: in the launcher."
 
   SettingsToggle {
@@ -33,7 +33,7 @@ SettingsCard {
 
   SettingsRow {
     theme: accountCard.host.theme
-    label: "Account"
+    label: "Sign-in status"
     help: accountCard.host.agentAccountSummary
     divider: false
 

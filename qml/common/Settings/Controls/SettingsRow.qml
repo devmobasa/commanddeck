@@ -2,7 +2,7 @@ import "../.."
 import QtQuick
 import QtQuick.Layouts
 
-// Label and help on the left, the control on the right, one hairline below.
+// Label and help on the left, the control on the right. The group owns dividers.
 // The label column never collapses, so long control text cannot push the
 // caption out of view the way the old free-form rows did.
 //
@@ -16,8 +16,10 @@ Item {
   required property var theme
   property string label: ""
   property string help: ""
-  property bool divider: true
-  property int controlMinimumWidth: Math.round(220 * root.theme.scale)
+  property string tag: ""
+  readonly property bool settingsRow: true
+  property bool divider: false
+  property int controlMinimumWidth: Math.round(90 * root.theme.scale)
   default property alias control: slot.data
 
   readonly property int rowSpacing: Math.round(16 * root.theme.scale)
@@ -35,8 +37,9 @@ Item {
   Layout.fillWidth: true
   implicitHeight: (root.stacked
     ? labels.implicitHeight + root.stackSpacing + slot.implicitHeight
-    : Math.max(labels.implicitHeight, slot.implicitHeight, Math.round(40 * root.theme.scale)))
+    : Math.max(labels.implicitHeight, slot.implicitHeight))
     + Math.round(16 * root.theme.scale)
+  Layout.minimumHeight: Math.round(root.theme.fontBody * 2.75)
   Accessible.role: Accessible.Grouping
   Accessible.name: root.label
 
@@ -57,41 +60,70 @@ Item {
       Layout.alignment: Qt.AlignVCenter
       spacing: Math.round(2 * root.theme.scale)
 
-      Text {
+      RowLayout {
         Layout.fillWidth: true
+        Text {
+        Layout.fillWidth: root.tag.length === 0
+        Layout.maximumWidth: Math.max(0, labels.width - (tagText.visible ? tagText.implicitWidth + root.rowSpacing : 0))
         textFormat: Text.PlainText
         text: root.label
         color: root.theme.text
         wrapMode: Text.Wrap
         font.family: root.theme.fontFamily
-        font.pixelSize: Math.round(root.theme.fontBody * 1.15)
-        font.weight: Font.Medium
+        font.pixelSize: root.theme.fontBody
+        font.weight: Font.Normal
+        }
+        Text {
+          id: tagText
+          visible: root.tag.length > 0
+          text: root.tag
+          color: root.theme.textMuted
+          font.family: root.theme.fontFamily
+          font.pixelSize: root.theme.fontSmall
+        }
+        Item { Layout.fillWidth: true; visible: root.tag.length > 0 }
       }
 
       Text {
         Layout.fillWidth: true
-        visible: root.help.length > 0
+        visible: text.length > 0
         textFormat: Text.PlainText
-        text: root.help
+        text: {
+          const descriptions = []
+          for (const child of slot.children) {
+            if (child.showCurrentDescription && child.currentDescription)
+              descriptions.push(child.currentDescription)
+          }
+          return [root.help].concat(descriptions).filter(value => value.length > 0).join("\n")
+        }
         color: root.theme.textMuted
         wrapMode: Text.Wrap
         font.family: root.theme.fontFamily
-        font.pixelSize: root.theme.fontBody
+        font.pixelSize: root.theme.fontSmall
+      }
+
+      Text {
+        Layout.fillWidth: true
+        objectName: "settingsChoiceWarning"
+        text: slot.children.filter(child => child.currentWarning).map(child => child.currentWarning).join("\n")
+        visible: text.length > 0
+        color: root.theme.urgent
+        wrapMode: Text.Wrap
+        font.family: root.theme.fontFamily
+        font.pixelSize: root.theme.fontSmall
+        Accessible.role: Accessible.StaticText
+        Accessible.name: text
       }
     }
 
     RowLayout {
       id: slot
-      // The control column. It fills about half the row so fill-width controls
-      // (pickers, fields) read as a proper column with a consistent left edge,
-      // and grows to its content — never below controlMinimum — so multi-control
-      // rows never clip. When stacked it fills the full row width beneath the
-      // label. There is no upper cap: the stack decision guarantees the label
-      // keeps its minimum, so a wide control takes the width it needs.
-      Layout.fillWidth: true
+      // Keep controls at their natural width against the right inset. On a
+      // narrow row they take the full line below the label.
+      Layout.fillWidth: root.stacked
       Layout.minimumWidth: root.controlMinimum
-      Layout.preferredWidth: root.stacked ? -1 : Math.round(root.width * 0.5)
-      Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+      Layout.preferredWidth: root.stacked ? -1 : Math.max(root.controlMinimum, slot.implicitWidth)
+      Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
       spacing: Math.round(8 * root.theme.scale)
     }
   }
@@ -101,7 +133,7 @@ Item {
     anchors.right: parent.right
     anchors.bottom: parent.bottom
     height: 1
-    visible: root.divider
+    visible: root.divider && root.parent.objectName !== "settingsGroupBody"
     color: root.theme.separator
   }
 }

@@ -34,6 +34,7 @@ public static partial class ProtocolRequestValidator
         }
 
         ValidateEnabledFlag( request );
+        ValidateShortcutFields( request );
         CheckLength( request.Operation, nameof( request.Operation ), MaximumOperationCharacters );
         CheckLength( request.Query, nameof( request.Query ), ProtocolLimits.MaximumQueryCharacters );
         CheckLength( request.ResultId, nameof( request.ResultId ), ProtocolLimits.MaximumIdentifierCharacters );
@@ -94,6 +95,24 @@ public static partial class ProtocolRequestValidator
         }
 
         ValidateSavedSearch( request, registry, deferFilterResolution );
+    }
+
+    private static void ValidateShortcutFields( ProtocolRequest request )
+    {
+        if ( request.Shortcut is not { } edit )
+        {
+            return;
+        }
+
+        CheckLength( edit.Id, nameof( edit.Id ), 512 );
+        CheckLength( edit.Chord, nameof( edit.Chord ), 64 );
+        CheckLength( edit.Description, nameof( edit.Description ), 200 );
+        CheckLength( edit.Command, nameof( edit.Command ), 16_384 );
+        if ( request.Operation is ProtocolOperations.ShortcutSet or ProtocolOperations.ShortcutRestore or ProtocolOperations.ShortcutHotkey
+            && edit.Id.Length == 0 )
+        {
+            throw new InvalidOperationException( "Choose a shortcut first." );
+        }
     }
 
     private static void ValidateAiFields( ProtocolRequest request )

@@ -202,26 +202,28 @@ internal sealed partial class SqliteLauncherPreferenceStore
         return CreatePreferencesSnapshot( preferences, customizations, shortcuts );
     }
 
-    private static async ValueTask<IReadOnlyList<ShortcutBinding>> InspectShortcutsAsync( bool includeShortcuts, CancellationToken cancellationToken )
+    private static async ValueTask<(IReadOnlyList<ShortcutBinding> Shortcuts, IReadOnlyList<Keybinding> Keybindings)> InspectShortcutsAsync(
+        bool includeShortcuts, CancellationToken cancellationToken )
     {
         if ( includeShortcuts )
         {
             return await HyprlandShortcutInspector
-                .InspectAsync( cancellationToken )
+                .InspectWithKeybindingsAsync( cancellationToken )
                 .ConfigureAwait( false );
         }
 
-        return [];
+        return ([], []);
     }
 
     private static PreferencesSnapshot CreatePreferencesSnapshot( LauncherPreferences preferences, List<CustomizationSummary> customizations,
-        IReadOnlyList<ShortcutBinding> shortcuts )
+        (IReadOnlyList<ShortcutBinding> Shortcuts, IReadOnlyList<Keybinding> Keybindings) shortcuts )
     {
         return new PreferencesSnapshot
         {
             Preferences = preferences,
             Customizations = customizations,
-            Shortcuts = [.. shortcuts],
+            Shortcuts = [.. shortcuts.Shortcuts],
+            Keybindings = [.. shortcuts.Keybindings],
             TotalCustomizationCount = customizations.Count
         };
     }

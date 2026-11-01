@@ -119,6 +119,38 @@ public static partial class Program
         }
     }
 
+    private static void PickerDependencyGuardRejectsMissingImportsAndSingletons( )
+    {
+        var directory = SpecTemporaryFiles.CreateDirectory( "commanddeck-picker-dependencies-" ).FullName;
+        try
+        {
+            foreach ( var asset in Directory.EnumerateFiles( Path.Combine( AppContext.BaseDirectory, "picker" ) ) )
+            {
+                File.Copy( asset, Path.Combine( directory, Path.GetFileName( asset ) ) );
+            }
+
+            File.Delete( Path.Combine( directory, "InterfaceFonts.js" ) );
+            Throws<InvalidOperationException>( ( ) => AssertPickerDependenciesDelivered( directory ) );
+
+            // The previous guard missed a local singleton used only in an expression.
+            foreach ( var asset in Directory.EnumerateFiles( directory ) )
+            {
+                File.Delete( asset );
+            }
+
+            File.WriteAllText( Path.Combine( directory, "shell.qml" ), "import QtQuick\nItem { property var value: Theme.fontFamily }" );
+            Throws<InvalidOperationException>( ( ) => AssertPickerDependenciesDelivered( directory ) );
+            File.WriteAllText( Path.Combine( directory, "Theme.qml" ), "pragma Singleton\nimport QtQuick\nQtObject {}" );
+            Throws<InvalidOperationException>( ( ) => AssertPickerDependenciesDelivered( directory ) );
+            File.WriteAllText( Path.Combine( directory, "qmldir" ), "singleton Theme 1.0 Theme.qml\n" );
+            AssertPickerDependenciesDelivered( directory );
+        }
+        finally
+        {
+            Directory.Delete( directory, recursive: true );
+        }
+    }
+
     private static List<string> PickerAssetNames( string directory )
     {
         True( Directory.Exists( directory ), "picker directory is missing: " + directory );
@@ -136,7 +168,7 @@ public static partial class Program
     private static void AssertPickerDependenciesDelivered( string directory )
     {
         Regex relativeImport = new( @"^\s*\.?import\s+""(?<path>[^""]+)""", RegexOptions.Multiline );
-        Regex objectDeclaration = new( @"\b(?<type>[A-Z][A-Za-z0-9_]*)\s*\{" );
+        Regex localTypeUse = new( @"\b(?<type>[A-Z][A-Za-z0-9_]*)\s*(?:\{|\.)" );
 
         var components = Directory
             .EnumerateFiles( Path.Combine( FindRepositoryRoot( ), "qml", "common" ), "*.qml", SearchOption.AllDirectories )
@@ -166,12 +198,24 @@ public static partial class Program
                     .TrimStart( )
                     .StartsWith( "//", StringComparison.Ordinal ) );
 
-            foreach ( Match match in objectDeclaration.Matches( string.Join( '\n', code ) ) )
+            foreach ( Match match in localTypeUse.Matches( string.Join( '\n', code ) ) )
             {
                 var type = match.Groups["type"].Value;
 
-                True( !components.Contains( type ) || File.Exists( Path.Combine( directory, type + ".qml" ) ),
-                    $"{Path.GetFileName( file )} uses {type}, which the picker does not deliver" );
+                if ( !components.Contains( type ) )
+                {
+                    continue;
+                }
+
+                var dependency = Path.Combine( directory, type + ".qml" );
+                True( File.Exists( dependency ), $"{Path.GetFileName( file )} uses {type}, which the picker does not deliver" );
+                if ( Regex.IsMatch( File.ReadAllText( dependency ), @"^\s*pragma\s+Singleton\b", RegexOptions.Multiline ) )
+                {
+                    var qmldir = Path.Combine( directory, "qmldir" );
+                    True( File.Exists( qmldir ) && Regex.IsMatch( File.ReadAllText( qmldir ),
+                        @"^singleton\s+" + Regex.Escape( type ) + @"\s+\S+\s+" + Regex.Escape( type + ".qml" ) + @"\s*$", RegexOptions.Multiline ),
+                        $"{type} is a singleton and needs a delivered qmldir registration" );
+                }
             }
         }
     }

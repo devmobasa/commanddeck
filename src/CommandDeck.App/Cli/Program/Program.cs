@@ -189,6 +189,7 @@ public static partial class Program
             throw new InvalidOperationException( "Cannot locate CommandDeck executable." );
         }
 
+        await runtime.Shortcuts.Recording.ResetOnStartupAsync( cancellationToken ).ConfigureAwait( false );
         startup.Mark( StartupStages.SchemaCheck );
         runtime.StartClipboardCapture( executable, GetProcessPrefix( executable ) );
         startup.Mark( StartupStages.ClipboardCapture );

@@ -26,6 +26,10 @@ Rectangle {
     const suffix = value.remediation ? " " + value.remediation : ""
     return value.title + (value.detail ? ": " + value.detail : "") + suffix
   }).join("\n")
+  // Configured folders that don't exist; the inspector offers to stop indexing each.
+  readonly property var missingRoots: issues.filter(issue => issue.missingRoot).map(issue => issue.missingRoot)
+  // A service issue has nothing to do with indexed folders.
+  readonly property bool hasIndexIssue: issues.some(issue => !issue.service)
   readonly property alias bannerText: statusText.text
   readonly property int maximumBannerHeight: Math.round(36 * root.theme.scale)
 
@@ -92,6 +96,13 @@ Rectangle {
             title: "Index root paused",
             detail: indexRoot.path + " · " + indexRoot.pendingEventCount + " pending",
             remediation: "Resume this root from commanddeck index resume --root " + indexRoot.id + "."
+          })
+        } else if (indexRoot.watched === false && indexRoot.missing === true) {
+          values.push({
+            title: "Indexed folder missing",
+            detail: indexRoot.path + " does not exist.",
+            remediation: indexRoot.remediation || "Stop indexing this folder, or create it.",
+            missingRoot: { id: indexRoot.id, path: indexRoot.path }
           })
         } else if (indexRoot.watched === false && indexRoot.lastError) {
           values.push({

@@ -15,6 +15,7 @@ StackLayout {
   readonly property alias aiPage: aiHub.aiPage
   readonly property alias shortcutsPage: shortcutsScroll
   readonly property alias customizationPage: customizationScroll
+  readonly property alias diagnosticsPage: diagnosticsScroll
 
   function resetScroll() {
     for (let index = 0; index < children.length; index++) {
@@ -51,6 +52,11 @@ StackLayout {
 
   SettingsCustomizationPage {
     id: customizationScroll
+    host: pages.host
+  }
+
+  SettingsDiagnosticsPage {
+    id: diagnosticsScroll
     host: pages.host
   }
 }

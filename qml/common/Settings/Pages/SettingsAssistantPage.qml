@@ -44,7 +44,7 @@ ScrollView {
 
   ColumnLayout {
     width: assistantScroll.availableWidth
-    spacing: Math.round(14 * assistantScroll.host.theme.scale)
+    spacing: Math.round(22 * assistantScroll.host.theme.scale)
 
     SettingsAssistantAccountCard {
       id: assistantCard
@@ -54,7 +54,7 @@ ScrollView {
     SettingsCard {
       id: modelCard
       searchQuery: assistantScroll.host.part_settingsSearch.text
-      searchTerms: "assistant codex claude cursor grok backend model reasoning effort refresh hidden"
+      settingId: Protocol.SettingIds.AssistantModel
       theme: assistantScroll.host.theme
       title: "Model"
       description: (assistantScroll.host.agentModels || []).length === 0
@@ -153,7 +153,7 @@ ScrollView {
     SettingsCard {
       id: trustCard
       searchQuery: assistantScroll.host.part_settingsSearch.text
-      searchTerms: "assistant codex trust level context policy approved folders ask every access web search unrestricted permission sandbox"
+      settingId: Protocol.SettingIds.AssistantTrust
       theme: assistantScroll.host.theme
       title: "Trust and context"
       description: "Each level adds authority. Raising it asks for confirmation; the top level needs a typed phrase and expires."
@@ -187,7 +187,7 @@ ScrollView {
         Layout.fillWidth: true
         Layout.preferredHeight: agentChallengeColumn.implicitHeight + Math.round(28 * assistantScroll.host.theme.scale)
         visible: assistantScroll.host.agentChallenge !== null && assistantScroll.host.agentChallenge !== undefined
-        radius: Math.max(4, assistantScroll.host.theme.radiusSmall)
+        radius: assistantScroll.host.theme.radiusSmall
         color: Qt.rgba(assistantScroll.host.theme.urgent.r, assistantScroll.host.theme.urgent.g, assistantScroll.host.theme.urgent.b, 0.07)
         border.width: 1
         border.color: Qt.rgba(assistantScroll.host.theme.urgent.r, assistantScroll.host.theme.urgent.g, assistantScroll.host.theme.urgent.b, 0.55)
@@ -208,7 +208,7 @@ ScrollView {
             color: assistantScroll.host.theme.text
             wrapMode: Text.Wrap
             font.family: assistantScroll.host.theme.fontFamily
-            font.pixelSize: Math.round(assistantScroll.host.theme.fontBody * 1.15)
+            font.pixelSize: assistantScroll.host.theme.fontBody
             font.weight: Font.DemiBold
             Accessible.role: Accessible.StaticText
             Accessible.name: "Trust challenge: " + text
@@ -236,7 +236,7 @@ ScrollView {
             text: "Type exactly: " + assistantScroll.host.agentRequiredPhrase
             color: assistantScroll.host.theme.textMuted
             wrapMode: Text.Wrap
-            font.family: "monospace"
+            font.family: assistantScroll.host.theme.monoFontFamily
             font.pixelSize: assistantScroll.host.theme.fontBody
           }
 
@@ -250,16 +250,20 @@ ScrollView {
             Accessible.description: "Must match the required phrase exactly"
           }
 
-          SettingsChoice {
-            id: agentDurationChoice
+          SettingsRow {
             theme: assistantScroll.host.theme
-            Layout.fillWidth: true
             visible: assistantScroll.host.agentChallengeRequiresDuration
-            options: [
-              { id: Protocol.AgentTrustDurations.OneHour, title: "One hour", description: "Authority lapses on its own.", badge: "Recommended" },
-              { id: Protocol.AgentTrustDurations.UntilDowngrade, title: "Until I downgrade", description: "Stays unrestricted until you lower the level.", badge: "Persistent", warning: true }
-            ]
-            Accessible.name: "Trust duration"
+            label: "Trust duration"
+
+            SettingsChoice {
+              id: agentDurationChoice
+              theme: assistantScroll.host.theme
+              options: [
+                { id: Protocol.AgentTrustDurations.OneHour, title: "One hour", description: "Authority lapses on its own.", badge: "Recommended" },
+                { id: Protocol.AgentTrustDurations.UntilDowngrade, title: "Until I downgrade", description: "Stays unrestricted until you lower the level.", badge: "Persistent", warning: true }
+              ]
+              Accessible.name: "Trust duration"
+            }
           }
 
           RowLayout {
@@ -327,7 +331,7 @@ ScrollView {
     SettingsCard {
       id: limitsCard
       searchQuery: assistantScroll.host.part_settingsSearch.text
-      searchTerms: "assistant codex conversation retention turn timeout duration"
+      settingId: Protocol.SettingIds.AssistantLimits
       theme: assistantScroll.host.theme
       title: "Limits"
 
@@ -370,7 +374,7 @@ ScrollView {
     SettingsCard {
       id: grantsCard
       searchQuery: assistantScroll.host.part_settingsSearch.text
-      searchTerms: "assistant codex grants revoke all remembered authority permissions"
+      settingId: Protocol.SettingIds.AssistantGrants
       theme: assistantScroll.host.theme
       title: "Grants"
       description: (assistantScroll.host.agentGrants || []).length === 0
@@ -437,8 +441,8 @@ ScrollView {
                 color: assistantScroll.host.theme.text
                 elide: Text.ElideMiddle
                 font.family: assistantScroll.host.theme.fontFamily
-                font.pixelSize: Math.round(assistantScroll.host.theme.fontBody * 1.1)
-                font.weight: Font.Medium
+                font.pixelSize: assistantScroll.host.theme.fontBody
+                font.weight: Font.Normal
               }
 
               Text {
@@ -493,7 +497,7 @@ ScrollView {
     SettingsCard {
       id: diagnosticsCard
       searchQuery: assistantScroll.host.part_settingsSearch.text
-      searchTerms: "assistant codex diagnostics status package helper sandbox warnings"
+      settingId: Protocol.SettingIds.AssistantDiagnostics
       theme: assistantScroll.host.theme
       title: "Diagnostics"
 

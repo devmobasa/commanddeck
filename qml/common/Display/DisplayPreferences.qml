@@ -59,7 +59,14 @@ QtObject {
     stateDir: preferences.host.coachStateDir
   }
 
+  readonly property InterfaceFontStore interfaceFontStore: InterfaceFontStore {
+    active: !preferences.host.testMode
+    stateDir: preferences.host.coachStateDir
+    onChanged: preferences.host.interfaceFont = preferences.interfaceFontStore.choice
+  }
+
   function load() {
+    preferences.interfaceFontStore.load()
     preferences.displayScaleStore.load()
     preferences.transparencyStore.load()
     preferences.layoutStore.load()

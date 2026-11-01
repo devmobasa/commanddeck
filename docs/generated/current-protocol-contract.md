@@ -113,6 +113,13 @@ Generated from Core protocol constants and registries. Run `scripts/generate-pro
 - `saved-search.get`
 - `saved-search.save`
 - `search`
+- `shortcut.export`
+- `shortcut.hotkey`
+- `shortcut.record.start`
+- `shortcut.record.stop`
+- `shortcut.reset-all`
+- `shortcut.restore`
+- `shortcut.set`
 - `status`
 - `suggest`
 
@@ -245,6 +252,7 @@ Generated from Core protocol constants and registries. Run `scripts/generate-pro
 - `SelectAfterSave`
 - `SelectedProject`
 - `SessionId`
+- `Shortcut`
 - `SourcePatch`
 - `StableIds`
 - `TargetFilterId`
@@ -373,6 +381,7 @@ Generated from Core protocol constants and registries. Run `scripts/generate-pro
 | `herdr-spaces` | `hspace:` | `herdr-space:`, `hspaces:` |
 | `herdr-tabs` | `htab:` | `herdr-tab:`, `htabs:` |
 | `herdr-attention` | `hattention:` | `herdr-attention:` |
+| `herdr-agents` | `agents:` | `hagents:`, `herdr-agents:` |
 | `configuration` | `cfg:` | `config:` |
 | `commands` | `cmd:` | — |
 | `quicklinks` | `link:` | — |

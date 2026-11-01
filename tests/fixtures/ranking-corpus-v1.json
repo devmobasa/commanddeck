@@ -404,6 +404,22 @@
         ]
       },
       {
+        "id": "type-typo-firefox",
+        "rationale": "A transposition typed before the word is finished still reaches Firefox.",
+        "steps": [
+          {
+            "query": "fierf",
+            "acceptable": ["app:firefox.desktop"],
+            "required": ["app:firefox.desktop"]
+          },
+          {
+            "query": "fierfo",
+            "acceptable": ["app:firefox.desktop"],
+            "required": ["app:firefox.desktop"]
+          }
+        ]
+      },
+      {
         "id": "diacritic-cafe",
         "critical": true,
         "rationale": "Folded cafe matches Café rather than disappearing.",

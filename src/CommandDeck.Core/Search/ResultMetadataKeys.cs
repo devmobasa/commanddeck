@@ -16,6 +16,9 @@ public static class ResultMetadataKeys
     public const string ProviderId = "providerId";
     public const string Prompt = "prompt";
 
+    // The Hyprland chord bound to the action a row runs, shown on the row.
+    public const string Keybinding = "keybinding";
+
     public const string KeyLine = "keyLine";
     public const string KeyColumn = "keyColumn";
     public const string ValueLine = "valueLine";

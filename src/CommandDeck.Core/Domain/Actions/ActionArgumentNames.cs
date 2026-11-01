@@ -40,6 +40,14 @@ public static class ActionArgumentNames
     public const string PostingId = "postingId";
     public const string BoxId = "boxId";
     public const string TargetId = "targetId";
+    public const string ShortcutChord = "shortcutChord";
+    public const string ShortcutDescription = "shortcutDescription";
+    public const string ShortcutCommand = "shortcutCommand";
+    public const string ShortcutId = "shortcutId";
+    public const string SettingId = "settingId";
+
+    // "true" launches an application even when it already has a window.
+    public const string NewInstance = "newInstance";
     public const string TargetKind = "targetKind";
     public const string InputPrefix = "input:";
     public const string Terminal = "terminal";

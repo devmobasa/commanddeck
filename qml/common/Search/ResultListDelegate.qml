@@ -24,6 +24,8 @@ Loader {
 
   signal activated()
   signal actionsRequested()
+  signal dragStarted()
+  signal dragFinished(bool dropped)
 
   sourceComponent: root.isHeader ? headerComponent : resultComponent
 
@@ -48,6 +50,8 @@ Loader {
       actionCount: root.actionCount
       compactLayout: root.compactLayout
       controlHeld: root.controlHeld
+      onDragStarted: root.dragStarted()
+      onDragFinished: dropped => root.dragFinished(dropped)
       onActivated: root.activated()
       onActionsRequested: root.actionsRequested()
     }

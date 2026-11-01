@@ -326,7 +326,7 @@ public static class LauncherSourceRegistry
         new( ) { Id = SourceIds.Scripts, Label = "Script commands", Icon = "utilities-terminal" },
         new( ) { Id = SourceIds.Clipboard, Label = "Clipboard history", Icon = "edit-paste" },
         new( ) { Id = SourceIds.Folders, Label = "Browse folders", Icon = "folder" },
-        new( ) { Id = SourceIds.OmarchyControl, Label = "Omarchy Control", Icon = "emblem-system" },
+        new( ) { Id = SourceIds.OmarchyControl, Label = "Omarchy Control", Icon = "omarchy" },
         new( ) { Id = SourceIds.Applications, Label = "Applications", Icon = "applications-other" },
         new( ) { Id = SourceIds.Files, Label = "Files", Icon = "folder" },
         new( ) { Id = SourceIds.WindowsWorkspaces, Label = "Windows & Workspaces", Icon = "user-desktop" },
@@ -384,6 +384,23 @@ public sealed class ShortcutBinding
     public bool IsAvailable { get; init; }
 }
 
+// One Hyprland key binding as `hyprctl binds` reports it. Lua binds name no
+// command, so the description is what identifies the action.
+public sealed class Keybinding
+{
+    public string Id { get; init; } = "";
+    public bool Changeable { get; init; }
+    public string Reason { get; init; } = "";
+    public string SourceFile { get; init; } = "";
+    public bool Changed { get; init; }
+    public bool Added { get; init; }
+    public bool LauncherHotkey { get; init; }
+    public string OriginalChord { get; init; } = "";
+    public required string Chord { get; init; }
+    public required string Description { get; init; }
+    public string Submap { get; init; } = string.Empty;
+}
+
 public sealed class ShortcutInventory
 {
     public bool Available { get; init; }
@@ -430,10 +447,12 @@ public sealed class PreferenceDefaults
 
 public sealed class PreferencesSnapshot
 {
+    public ShortcutEditorSnapshot? ShortcutEditor { get; init; }
     public required LauncherPreferences Preferences { get; init; }
     public PreferenceDefaults? Defaults { get; init; }
     public List<CustomizationSummary> Customizations { get; init; } = [];
     public List<ShortcutBinding> Shortcuts { get; init; } = [];
+    public List<Keybinding> Keybindings { get; init; } = [];
     public int TotalCustomizationCount { get; init; }
     public bool CustomizationsTruncated { get; init; }
 }

@@ -127,6 +127,7 @@ public sealed partial class UnixProtocolServer
 
     private ValueTask DispatchAsync( ClientWriter writer, ProtocolRequest request, ProtocolFamily family, ClientRequestContext context ) => family switch
     {
+        ProtocolFamily.Shortcuts => HandleShortcutsAsync( writer, request, context ),
         ProtocolFamily.Search => HandleSearchRequestAsync( writer, request, context ),
         ProtocolFamily.Suggest => HandleSuggestionsAsync( writer, request, context ),
         ProtocolFamily.Invoke => HandleInvokeAsync( writer, request, context ),

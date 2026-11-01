@@ -38,7 +38,7 @@ CheckBox {
     y: (root.height - height) / 2
     width: root.boxSize
     height: root.boxSize
-    radius: Math.max(3, Math.round(4 * root.theme.scale))
+    radius: Math.min(root.theme.radius, Math.round(4 * root.theme.scale))
     color: root.checked
       ? root.tint(root.theme.accent, root.enabled ? 0.9 : 0.4)
       : (root.hovered && root.enabled ? root.theme.surfaceStrong : "transparent")
@@ -49,7 +49,7 @@ CheckBox {
       anchors.centerIn: parent
       visible: root.checked
       text: "✓"
-      color: root.theme.popupBackground
+      color: root.theme.accentText
       font.family: root.theme.fontFamily
       font.pixelSize: Math.round(root.boxSize * 0.72)
       font.weight: Font.Bold

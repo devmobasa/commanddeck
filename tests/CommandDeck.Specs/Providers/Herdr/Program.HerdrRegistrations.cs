@@ -14,6 +14,9 @@ public static partial class Program
         await RunAsync( "herdr project gate covers terminal activation across executors", HerdrProjectGateCoversActivationAsync );
         await RunAsync( "herdr mixed focus actions share a gate through activation and cleanup", HerdrMixedFocusActionsShareGateAsync );
         await RunAsync( "herdr attention and exact space scopes preserve the query algebra", HerdrAttentionAndScopeAsync );
+        await RunAsync( "herdr agents list every agent across spaces by urgency", HerdrAgentsListEveryAgentByUrgencyAsync );
+        await RunAsync( "herdr agent rows pass the coordinator and switch to their tab", HerdrAgentRowsPassTheCoordinatorAndSwitchTabsAsync );
+        await RunAsync( "herdr browsed space offers to create a tab the text names", HerdrBrowsedSpaceOffersToCreateAMissingTabAsync );
         await RunAsync( "herdr space details bound the tab preview", HerdrSpacePreviewIsBoundedAsync );
         await RunAsync( "herdr tab edits bind cached targets and do not train focus history", HerdrTabEditsUseCachedTargetsAsync );
         await RunAsync( "herdr tab edits reject unconfirmed changes without retries", HerdrTabEditsRejectUnconfirmedChangesAsync );
@@ -21,6 +24,8 @@ public static partial class Program
         await RunAsync( "herdr client reads status with a fixed default-session argv", HerdrClientReadsStatusAsync );
         await RunAsync( "herdr client admits only a compatible running server", HerdrClientAdmitsOnlyCompatibleServersAsync );
         await RunAsync( "herdr client treats process and parse failures as typed outcomes", HerdrClientReportsTypedFailuresAsync );
+        await RunAsync( "herdr client asks again once after a status crash", HerdrClientAsksAgainAfterAStatusCrashAsync );
+        await RunAsync( "herdr client logs failures without arguments or flooding", HerdrClientLogsFailuresWithoutArgumentsOrFloodingAsync );
         await RunAsync( "herdr client lists both inventories with bounded limits and a clean environment", HerdrClientListsWithBoundsAsync );
         await RunAsync( "herdr client focuses with a literal id and verifies the acknowledgement", HerdrClientFocusesAndVerifiesAsync );
         await RunAsync( "herdr client maps focus errors and never retries a timeout", HerdrClientMapsFocusErrorsAsync );

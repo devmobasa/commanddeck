@@ -57,8 +57,16 @@ public static partial class Program
                -- to change the key, or `commanddeck hotkey remove` to delete this file.
                -- The chord reaches the CommandDeck shell plugin as a Hyprland global
                -- shortcut, so the launcher opens without starting a process.
+               if package.searchpath("hypr.commanddeck_keys", package.path) then require("hypr.commanddeck_keys") end
                hl.unbind("CTRL + SPACE")
                hl.bind("CTRL + SPACE", hl.dsp.global("commanddeck:toggle"), { description = "CommandDeck" })
+               hl.layer_rule({ match = { namespace = "^commanddeck" }, no_anim = true, animation = "none" })
+               hl.define_submap("commanddeck_record", function()
+                 hl.bind("ESCAPE", function()
+                   hl.dispatch(hl.dsp.submap("reset"))
+                   hl.dispatch(hl.dsp.global("commanddeck:record-cancel"))
+                 end)
+               end)
 
                """, File.ReadAllText( Path.Combine( fixture.Paths.HyprDirectory, "commanddeck.lua" ) ) );
 

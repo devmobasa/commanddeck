@@ -10,7 +10,7 @@ Rectangle {
 
   implicitHeight: Math.round(root.theme.fontCaption * 1.9)
   implicitWidth: Math.max(capText.implicitWidth + 10, root.implicitHeight)
-  radius: Math.max(2, root.theme.radiusSmall - 2)
+  radius: Math.max(0, root.theme.radiusSmall - 2)
   color: root.theme.surfaceStrong
   border.width: 1
   border.color: root.theme.separator
@@ -22,7 +22,7 @@ Rectangle {
     textFormat: Text.PlainText
     text: root.label
     color: root.theme.textMuted
-    font.family: root.theme.fontFamily
+    font.family: root.theme.monoFontFamily
     font.pixelSize: root.theme.fontCaption
   }
 }

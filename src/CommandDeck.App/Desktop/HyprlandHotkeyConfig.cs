@@ -83,7 +83,7 @@ public static partial class HyprlandHotkeyConfig
         return string.Join( " + ", normalized );
     }
 
-    public static string GenerateFile( string chord )
+    public static string GenerateFile( string chord, IReadOnlyList<ShortcutOverride>? companions = null )
     {
         var normalized = NormalizeChord( chord );
         StringBuilder text = new( );
@@ -97,10 +97,14 @@ public static partial class HyprlandHotkeyConfig
         text.Append( "-- The chord reaches the CommandDeck shell plugin as a Hyprland global\n" );
         text.Append( "-- shortcut, so the launcher opens without starting a process.\n" );
 
+        text.Append( ShortcutLua.KeysRequire ).Append( '\n' );
+
         text
             .Append( "hl.unbind(\"" )
             .Append( normalized )
             .Append( "\")\n" );
+
+        text.Append( ShortcutLua.BindCalls( companions ?? [] ) );
 
         text
             .Append( "hl.bind(\"" )
@@ -110,6 +114,8 @@ public static partial class HyprlandHotkeyConfig
             .Append( "\"), { description = \"" )
             .Append( BindingDescription )
             .Append( "\" })\n" );
+
+        text.Append( ShortcutLua.ModuleDefinitions ).Append( '\n' );
 
         return text.ToString( );
     }

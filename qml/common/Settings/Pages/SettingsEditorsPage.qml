@@ -22,21 +22,21 @@ ScrollView {
 
   ColumnLayout {
     width: editorsScroll.availableWidth
-    spacing: Math.round(14 * editorsScroll.host.theme.scale)
+    spacing: Math.round(22 * editorsScroll.host.theme.scale)
 
     SettingsCard {
       id: editorsCard
       searchQuery: editorsScroll.host.part_settingsSearch.text
-      searchTerms: "editors preferred graphical terminal executable arguments"
+      settingId: Protocol.SettingIds.Editors
       theme: editorsScroll.host.theme
-      title: "Editors"
+      title: "File opening"
       description: "How CommandDeck opens a file at a line. Arguments are a JSON array; {path}, {line}, {column}, and {key} are filled in."
 
       SettingsRow {
         theme: editorsScroll.host.theme
         label: "Preferred editor"
 
-        SettingsChoice {
+        SettingsSegmented {
           id: preferredEditorChoice
           theme: editorsScroll.host.theme
           Layout.fillWidth: true
@@ -63,6 +63,7 @@ ScrollView {
           SettingsField {
             id: graphicalEditorExecutable
             theme: editorsScroll.host.theme
+            machineText: true
             Layout.fillWidth: true
             placeholderText: "Graphical editor executable"
             enabled: !editorsScroll.host.loading && !editorsScroll.host.snapshotMutationBusy
@@ -72,6 +73,7 @@ ScrollView {
           SettingsField {
             id: graphicalEditorArguments
             theme: editorsScroll.host.theme
+            machineText: true
             Layout.fillWidth: true
             placeholderText: '["--goto","{path}:{line}:{column}"]'
             enabled: !editorsScroll.host.loading && !editorsScroll.host.snapshotMutationBusy
@@ -95,6 +97,7 @@ ScrollView {
           SettingsField {
             id: terminalEditorExecutable
             theme: editorsScroll.host.theme
+            machineText: true
             Layout.fillWidth: true
             placeholderText: "Terminal editor executable"
             enabled: !editorsScroll.host.loading && !editorsScroll.host.snapshotMutationBusy
@@ -104,6 +107,7 @@ ScrollView {
           SettingsField {
             id: terminalEditorArguments
             theme: editorsScroll.host.theme
+            machineText: true
             Layout.fillWidth: true
             placeholderText: '["+{line}","{path}"]'
             enabled: !editorsScroll.host.loading && !editorsScroll.host.snapshotMutationBusy

@@ -14,8 +14,36 @@ SettingsPanel {
   // False until the window's on-demand loader has built this panel.
   required property bool presented
 
+  shortcutController: settingsPanel.host.host.part_shortcutEditor
   id: settingsPanel
+  insetFrame: settingsPanel.host.part_palette.frameInset > 0
   visible: settingsPanel.presented && settingsPanel.host.host.settingsOpen && !settingsPanel.host.host.extensionManagementOpen
+  onVisibleChanged: Qt.callLater(settingsPanel.revealPendingSetting)
+  Component.onCompleted: Qt.callLater(settingsPanel.revealPendingSetting)
+  onSnapshotChanged: Qt.callLater(settingsPanel.revealPendingSetting)
+
+  // A Settings row in the launcher names a card; it is shown once, when the
+  // panel is visible.
+  function revealPendingSetting() {
+    const deck = settingsPanel.host.host
+    if (!settingsPanel.visible || deck.pendingSettingId.length === 0) return
+    if (deck.pendingShortcut && (!settingsPanel.snapshot || !settingsPanel.snapshot.shortcutEditor)) return
+    const settingId = deck.pendingSettingId
+    const url = deck.pendingSettingUrl
+    deck.pendingSettingId = ""
+    deck.pendingSettingUrl = ""
+    settingsPanel.revealSetting(settingId, url)
+    if (deck.pendingShortcut) {
+      const target = deck.pendingShortcut
+      deck.pendingShortcut = null
+      Qt.callLater(function() { settingsPanel.recordShortcut(target) })
+    }
+  }
+
+  Connections {
+    target: settingsPanel.host.host
+    function onPendingSettingIdChanged() { Qt.callLater(settingsPanel.revealPendingSetting) }
+  }
   onExtensionsRequested: settingsPanel.host.host.extensionManagementOpen = true
   opacity: visible ? 1 : 0
   Behavior on opacity {
@@ -33,6 +61,8 @@ SettingsPanel {
   onIndexRootChangeRequested: (operation, path, rootId) =>
     settingsPanel.host.host.part_indexRootsController.change(operation, path, rootId)
   snapshot: settingsPanel.host.host.settingsSnapshot
+  runtimeStatus: settingsPanel.host.host.runtimeStatus
+  onRuntimeStatusRequested: settingsPanel.host.host.requestRuntimeStatus()
   quicklinksController: settingsPanel.host.host.part_quicklinksController
   fallbackQuicklinks: settingsPanel.host.host.fallbackQuicklinks
   sourceDescriptors: settingsPanel.host.host.sourceDescriptors
@@ -105,6 +135,8 @@ SettingsPanel {
   keepSearchSeconds: settingsPanel.host.host.keepSearchSeconds
   onLauncherBehaviorSelected: (escapeClears, keepSeconds) =>
     settingsPanel.host.host.applyLauncherBehavior(escapeClears, keepSeconds)
+  interfaceFont: settingsPanel.host.host.interfaceFont
+  onInterfaceFontSelected: choice => settingsPanel.host.host.applyInterfaceFont(choice)
   panelTransparencyEnabled: settingsPanel.host.host.panelTransparencyEnabled
   panelTransparencyPercent: settingsPanel.host.host.panelTransparencyPercent
   onPanelTransparencyChanged: (enabled, percent) =>

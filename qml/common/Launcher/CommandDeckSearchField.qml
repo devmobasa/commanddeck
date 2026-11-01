@@ -41,6 +41,8 @@ Rectangle {
   }
   signal searchEdited()
   signal actionsRequested()
+  signal changeShortcutRequested()
+  signal largeTypeRequested(string text)
   // Up with nothing to move to on an empty or recalled query; restart is true
   // when the query is empty, so the newest entry comes first again.
   signal historyRecallRequested(bool restart)
@@ -82,6 +84,14 @@ Rectangle {
   // Ctrl+Enter and Ctrl+Shift+Enter open the action menu when the row has no
   // second or third action to run; other chords stay with the text field.
   function handleActionShortcut(key, modifiers) {
+    if (key === Qt.Key_K && (modifiers & ~Qt.KeypadModifier) === Qt.AltModifier) {
+      changeShortcutRequested()
+      return true
+    }
+    if (key === Qt.Key_L && (modifiers & ~Qt.KeypadModifier) === Qt.ControlModifier) {
+      largeTypeRequested(searchInput.text)
+      return true
+    }
     const slot = ShortcutSlots.slotForKey(key, modifiers)
     const action = ShortcutSlots.entryForSlot(directActions, slot)
     if (action) {
@@ -351,6 +361,9 @@ Rectangle {
           event.accepted = true
         } else if (enter && event.modifiers === Qt.NoModifier) {
           root.controller.invokePrimary()
+          event.accepted = true
+        } else if (enter && (event.modifiers & ~Qt.KeypadModifier) === Qt.ShiftModifier) {
+          root.controller.invokeNewWindow()
           event.accepted = true
         } else if (event.key === Qt.Key_Right && event.modifiers === Qt.NoModifier
                    && searchInput.cursorPosition === searchInput.length

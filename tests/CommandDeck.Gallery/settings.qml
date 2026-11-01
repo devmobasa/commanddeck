@@ -6,10 +6,10 @@ import Quickshell
 ShellRoot {
   DemoStage {
     id: stage
-    shots: ["display", "layout", "search", "folders", "quicklinks", "quicklink-edit"].map(function(section) {
+    shots: ["display", "layout", "search", "folders", "quicklinks", "quicklink-edit", "customization", "ai", "trust-duration", "quick-answers", "editors", "filters", "shortcuts", "shortcuts-preparing", "shortcuts-recording", "shortcuts-conflict", "shortcuts-remove", "shortcuts-error", "shortcuts-changed", "shortcuts-readonly", "shortcuts-menu", "diagnostics", "overview", "limits", "choices", "font-shell", "narrow"].map(function(section) {
       return {
         name: "settings-" + section + ".png",
-        frame: { width: 1280, height: 900 },
+        frame: { width: section === "narrow" ? 640 : 1280, height: 900 },
         show: function() { gallerySettings.show(section) }
       }
     })

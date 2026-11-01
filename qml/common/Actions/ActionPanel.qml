@@ -172,6 +172,10 @@ Rectangle {
 
   // A direct shortcut chord chooses its action, even while the filter hides it.
   function handleShortcutKey(event) {
+    if (event.key === Qt.Key_K && (event.modifiers & ~Qt.KeypadModifier) === Qt.AltModifier) {
+      const change = allActions().find(value => value.id === "change-shortcut")
+      if (change) { event.accepted = true; actionChosen(change); return true }
+    }
     const entry = ShortcutSlots.entryForSlot(root.shortcuts,
       ShortcutSlots.slotForKey(event.key, event.modifiers))
     const action = entry ? allActions().find(value => value.id === entry.id) : null

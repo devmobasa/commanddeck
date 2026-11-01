@@ -13,6 +13,7 @@ public sealed partial class CommandDeckRuntime
             .ConfigureAwait( false );
 
         _history.ApplyRead( snapshot.Preferences, historyVersion );
+        var editor = includeShortcuts ? await Shortcuts.SnapshotAsync( snapshot.Keybindings, cancellationToken ).ConfigureAwait( false ) : null;
 
         return new PreferencesSnapshot
         {
@@ -20,6 +21,8 @@ public sealed partial class CommandDeckRuntime
             Defaults = _history.Defaults,
             Customizations = snapshot.Customizations,
             Shortcuts = snapshot.Shortcuts,
+            Keybindings = editor?.Bindings ?? snapshot.Keybindings,
+            ShortcutEditor = editor,
             TotalCustomizationCount = snapshot.TotalCustomizationCount,
             CustomizationsTruncated = snapshot.CustomizationsTruncated
         };

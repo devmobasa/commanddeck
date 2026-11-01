@@ -13,7 +13,7 @@ SettingsCard {
   readonly property alias openTargetControl: openTargetChoice
 
   searchQuery: card.host.part_settingsSearch.text
-  searchTerms: "hey mail email threads open web app terminal tui"
+  settingId: Protocol.SettingIds.HeyMail
   theme: card.host.theme
   title: "HEY mail"
   description: "Search your HEY mail with hey: or mail:. The HEY CLI keeps your HEY login; CommandDeck never sees it."

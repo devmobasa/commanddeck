@@ -92,6 +92,7 @@ Item {
   function restoreHidden(customizationId, fromSettings) { return DeckHiddenItemActions.restoreHidden(sessionState.owner, customizationId, fromSettings) }
   function requestHiddenItems(query, offset) { return hiddenItemsController.refresh(query, offset) }
   // Durable display and AI choices, plus the inline answer presentation sessionState.
+  property string interfaceFont: "sans"
   property bool panelTransparencyEnabled: false
   // Compact layout (QML-only): one-line rows, number badges only while Ctrl
   // is held, and a lighter footer.
@@ -216,6 +217,10 @@ Item {
   property string selectedProjectContext: ""
   readonly property string activeFilterId: sessionState.owner.part_navigation.activeFilterId
   property bool settingsOpen: false
+  // The Settings card a launcher row asked for, shown once Settings is open.
+  property var pendingShortcut: null
+  property string pendingSettingId: ""
+  property string pendingSettingUrl: ""
   property bool helpOpen: false
   property string helpFocusTarget: ""
   property string filterFocusTarget: ""

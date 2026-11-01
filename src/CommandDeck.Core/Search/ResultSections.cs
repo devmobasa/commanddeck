@@ -15,6 +15,7 @@ public static class ResultSectionIds
     public const string Assistant = "assistant";
     public const string Fallback = "fallback";
     public const string HeyFallback = "hey-fallback";
+    public const string HerdrAgents = HerdrSearch.AgentsFilterId;
 }
 
 /// <summary>The sections with a fixed title and order.</summary>
@@ -30,6 +31,7 @@ public static class ResultSections
     public static readonly ResultSection RecentFrequent = new( ) { Id = ResultSectionIds.RecentFrequent, Title = "Recent & Frequent", Order = 2 };
     public static readonly ResultSection WindowsWorkspaces = new( ) { Id = SourceIds.WindowsWorkspaces, Title = "Windows & Workspaces", Order = 3 };
     public static readonly ResultSection Herdr = new( ) { Id = SourceIds.Herdr, Title = "Herdr", Order = 3 };
+    public static readonly ResultSection HerdrAgents = new( ) { Id = ResultSectionIds.HerdrAgents, Title = "Agents", Order = 3 };
     public static readonly ResultSection Omarchy = new( ) { Id = ResultSectionIds.Omarchy, Title = "Omarchy", Order = 4 };
 
     // Provider rows
@@ -40,6 +42,7 @@ public static class ResultSections
     public static readonly ResultSection Clipboard = new( ) { Id = SourceIds.Clipboard, Title = "Clipboard history", Order = 6 };
     public static readonly ResultSection SystemdUnits = new( ) { Id = SourceIds.SystemdUnits, Title = "Services & timers", Order = 6 };
     public static readonly ResultSection Timezone = new( ) { Id = SourceIds.Timezone, Title = "Timezone", Order = 7 };
+    public static readonly ResultSection Settings = new( ) { Id = SourceIds.Settings, Title = "Settings", Order = 8 };
     public static readonly ResultSection WebSearch = new( ) { Id = SourceIds.WebSearch, Title = "Web Search", Order = 10 };
     public static readonly ResultSection Fallback = new( ) { Id = ResultSectionIds.Fallback, Title = "Search the Web", Order = 100 };
     public static readonly ResultSection HeyFallback = new( ) { Id = ResultSectionIds.HeyFallback, Title = "HEY", Order = 101 };

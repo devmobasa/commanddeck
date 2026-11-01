@@ -4,11 +4,12 @@ import QtQuick
 import QtQuick.Layouts
 import "../../UiConstants.js" as Ui
 import "../../ColorThemeFormat.js" as Format
+import "../../Protocol.js" as Protocol
 
 // Settings → Customization → Colors. Follow the active Omarchy theme, or
 // override it with CommandDeck's own palette and tune that palette's accent,
 // background, and text. Changes apply immediately and persist without the
-// daemon; fonts and sizes keep following Omarchy either way.
+// daemon; the interface font and display size are independent of the colour choice.
 SettingsCard {
   id: card
 
@@ -44,7 +45,7 @@ SettingsCard {
   }
 
   searchQuery: card.host.part_settingsSearch.text
-  searchTerms: "customization colors colours theme omarchy commanddeck palette accent background text override"
+  settingId: Protocol.SettingIds.Colors
   theme: card.host.theme
   title: "Colors"
   description: card.host.hostThemeAvailable
@@ -54,7 +55,7 @@ SettingsCard {
   SettingsRow {
     theme: card.host.theme
     label: "Theme"
-    help: "Fonts and sizes still follow Omarchy."
+    help: "Interface font and display size stay unchanged."
     divider: card.usingDeck
 
     SettingsChoice {

@@ -5,6 +5,7 @@ namespace CommandDeck;
 public sealed partial class SqliteCatalog
 {
     private const string LaunchActionId = "launch";
+    private const string LaunchNewActionId = "launch-new";
     private const string OpenActionId = "open";
     private const string CollectActionId = "collect";
     private const string BrowseParentActionId = "browse-parent";
@@ -172,6 +173,13 @@ public sealed partial class SqliteCatalog
             case ResultKinds.Application:
                 values[ResultMetadataKeys.Application.Name] = title;
                 actions.Add( CreateResultAction( LaunchActionId, "Launch", ActionKinds.LaunchDesktop, values ) );
+
+                // Launch focuses an open window; this one always opens another.
+                if ( values.GetValueOrDefault( ResultMetadataKeys.Application.Terminal ) != "true" )
+                {
+                    actions.Add( CreateResultAction( LaunchNewActionId, "Open New Window", ActionKinds.LaunchDesktop,
+                        new Dictionary<string, string>( values, StringComparer.Ordinal ) { [ActionArgumentNames.NewInstance] = "true" } ) );
+                }
 
                 break;
             case ResultKinds.File:

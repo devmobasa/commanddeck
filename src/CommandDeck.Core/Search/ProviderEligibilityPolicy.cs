@@ -100,7 +100,7 @@ public static class ProviderEligibilityPolicy
     private static FilterDescriptor[] GetExcludedHerdrFilters( ParsedQuery query )
     {
         return query
-            .ExcludedFilters.Where( static filter => filter is { SourceId: SourceIds.Herdr, Id: not HerdrSearch.AttentionFilterId } )
+            .ExcludedFilters.Where( static filter => filter is { SourceId: SourceIds.Herdr, Id: not (HerdrSearch.AttentionFilterId or HerdrSearch.AgentsFilterId) } )
             .ToArray( );
     }
 

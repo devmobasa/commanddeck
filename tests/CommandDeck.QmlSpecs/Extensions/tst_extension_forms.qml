@@ -106,17 +106,17 @@ Item {
       const cancel = host.formControl.cancelControl
       mouseMove(cancel, cancel.width / 2, cancel.height / 2)
       waitForValue(cancel, "hovered", true)
-      compare(cancel.background.border.width, 3)
+      compare(cancel.background.border.width, 0)
       compare(cancel.background.border.color, theme.text)
-      compare(cancel.background.color, Qt.rgba(theme.accent.r, theme.accent.g, theme.accent.b, 0.38))
+      compare(cancel.background.color, Qt.rgba(theme.text.r, theme.text.g, theme.text.b, 0.14))
 
       mouseMove(host, host.width - 4, 4)
       for (let index = 0; index < 5; index++) keyClick(Qt.Key_Tab)
       waitForValue(cancel, "activeFocus", true)
-      compare(cancel.background.border.width, 3)
+      compare(cancel.background.border.width, 0)
       compare(cancel.background.border.color, theme.text)
-      compare(cancel.background.color, Qt.rgba(theme.accent.r, theme.accent.g, theme.accent.b, 0.58))
-      compare(cancel.background.children[0].border.width, 4)
+      compare(cancel.background.color, theme.surfaceStrong)
+      compare(cancel.background.children[0].border.width, 2)
     }
     function test_refresh_preserves_edits_and_ignores_stale_validation() {
       mouseClick(opener)

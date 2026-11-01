@@ -45,7 +45,7 @@ ColumnLayout {
         wrapMode: Text.Wrap
         horizontalAlignment: Text.AlignHCenter
         color: root.theme.text
-        font.family: "monospace"
+        font.family: root.theme.monoFontFamily
         font.pixelSize: Math.round(root.theme.fontHeading * 1.5)
         Accessible.name: "Expression: " + text
       }
@@ -78,7 +78,7 @@ ColumnLayout {
         wrapMode: Text.Wrap
         horizontalAlignment: Text.AlignHCenter
         color: root.theme.accent
-        font.family: "monospace"
+        font.family: root.theme.monoFontFamily
         font.pixelSize: Math.round(root.theme.fontHeading * 1.5)
         font.weight: Font.DemiBold
         Accessible.name: "Result: " + text
@@ -100,7 +100,7 @@ ColumnLayout {
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
     color: root.theme.textMuted
-    font.family: "monospace"
+    font.family: root.theme.monoFontFamily
     font.pixelSize: root.theme.fontBody
   }
 
@@ -112,7 +112,7 @@ ColumnLayout {
     textFormat: Text.PlainText
     wrapMode: Text.WrapAnywhere
     color: root.theme.textMuted
-    font.family: "monospace"
+    font.family: root.theme.monoFontFamily
     font.pixelSize: root.theme.fontBody
   }
 

@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace CommandDeck;
 
 public sealed partial class CommandDeckRuntime
@@ -44,12 +46,20 @@ public sealed partial class CommandDeckRuntime
         AddOptionalToolHealth( providers, ToolExecutables.Pandoc, PandocExtractorHealthId, "Pandoc extraction", _options.Indexing.EnablePandocExtraction );
         AddOptionalToolHealth( providers, ToolExecutables.ClipboardCopy, ClipboardCopyHealthId, "Clipboard copy", enabled: true );
 
+        using var process = System.Diagnostics.Process.GetCurrentProcess( );
+
         return new RuntimeStatusSnapshot
         {
             Catalog = catalog,
             Indexing = indexing,
             Inspection = inspection,
-            Providers = providers
+            Providers = providers,
+            Version = typeof( CommandDeckRuntime ).Assembly
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>( )
+                ?.InformationalVersion,
+            ProcessId = Environment.ProcessId,
+            StartedAt = new DateTimeOffset( process.StartTime ),
+            SearchTimings = SearchLogging.Timings.Summarize( )
         };
     }
 

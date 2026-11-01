@@ -29,7 +29,7 @@ EventPathFixture {
       typeText("sign in")
       compare(panel.currentPage, "ai")
       compare(panel.part_aiHub.section, "assistant")
-      keyClick(Qt.Key_Return)
+      keyClick(Qt.Key_Down)
       waitForValue(panel.navigationControl, "activeFocus", true)
       keyClick(Qt.Key_Tab)
       waitForValue(findChild(panel, "aiAssistantSection"), "activeFocus", true)
@@ -89,25 +89,26 @@ EventPathFixture {
       fixture.part_settingsPanel.visible = true
       waitForValue(fixture.part_settingsPanel.searchControl, "activeFocus", true)
       const close = fixture.part_settingsPanel.closeControl
-      compare(close.background.border.width, 1)
+      compare(close.background.border.width, 0)
+      compare(close.background.radius, close.height / 2)
       compare(close.background.children[0].visible, false)
 
       mouseMove(close, close.width / 2, close.height / 2)
       waitForValue(close, "hovered", true)
-      compare(close.background.border.width, 3)
+      compare(close.background.border.width, 0)
       compare(close.background.border.color, fixture.part_theme.text)
-      compare(close.background.color, Qt.rgba(fixture.part_theme.accent.r, fixture.part_theme.accent.g, fixture.part_theme.accent.b, 0.38))
+      compare(close.background.color, Qt.rgba(fixture.part_theme.text.r, fixture.part_theme.text.g, fixture.part_theme.text.b, 0.14))
 
       mouseMove(fixture.part_settingsPanel, 2, fixture.part_settingsPanel.height - 2)
       waitForValue(close, "hovered", false)
       close.forceActiveFocus()
       waitForValue(close, "activeFocus", true)
       compare(close.focusRingVisible, true)
-      compare(close.background.border.width, 3)
+      compare(close.background.border.width, 0)
       compare(close.background.border.color, fixture.part_theme.text)
-      compare(close.background.color, Qt.rgba(fixture.part_theme.accent.r, fixture.part_theme.accent.g, fixture.part_theme.accent.b, 0.58))
+      compare(close.background.color, fixture.part_theme.surfaceStrong)
       compare(close.background.children[0].visible, true)
-      compare(close.background.children[0].border.width, 4)
+      compare(close.background.children[0].border.width, 2)
       compare(close.background.children[0].border.color, fixture.part_theme.accent)
     }
 
@@ -122,9 +123,8 @@ EventPathFixture {
       compare(fixture.part_settingsPanel.currentPage, "customization")
       compare(fixture.part_settingsPanel.pageCards.customization.filter(card => card.matchesSearch).length, 1)
       verify(!fixture.part_settingsPanel.displaySizeControl.visible)
+      // The card matches by its title; Enter goes to its first control.
       keyClick(Qt.Key_Return)
-      compare(fixture.part_settingsPanel.navigationControl.activeFocus, true)
-      keyClick(Qt.Key_Tab)
       waitForValue(fixture.part_settingsPanel.panelTransparencyControl, "activeFocus", true)
       const checked = fixture.part_settingsPanel.panelTransparencyControl.checked
       keyClick(Qt.Key_Space)
@@ -134,7 +134,7 @@ EventPathFixture {
       compare(fixture.part_settingsPanel.searchControl.selectedText, "  TRANSPARENCY  ")
       keyClick(Qt.Key_Escape)
       compare(fixture.part_settingsPanel.searchControl.text, "")
-      compare(fixture.part_settingsPanel.filteredPages.length, 6)
+      compare(fixture.part_settingsPanel.filteredPages.length, 7)
       verify(fixture.part_settingsPanel.searchControl.activeFocus)
       compare(fixture.part_settingsPanel.dismissals, 0)
       keyClick(Qt.Key_Backtab)
@@ -188,7 +188,7 @@ EventPathFixture {
       keyClick(Qt.Key_Backtab)
       waitForValue(fixture.part_settingsPanel.searchControl, "activeFocus", true)
       keyClick(Qt.Key_Escape)
-      compare(fixture.part_settingsPanel.filteredPages.length, 6)
+      compare(fixture.part_settingsPanel.filteredPages.length, 7)
       verify(fixture.part_settingsPanel.searchControl.activeFocus)
     }
 
@@ -199,7 +199,7 @@ EventPathFixture {
       waitForValue(fixture.part_settingsPanel.searchControl, "activeFocus", true)
       verify(fixture.part_settingsPanel.railCollapsed)
       typeText("model")
-      keyClick(Qt.Key_Return)
+      keyClick(Qt.Key_Down)
       waitForValue(fixture.part_settingsPanel.pagePickerControl, "activeFocus", true)
       keyClick(Qt.Key_PageDown, Qt.ControlModifier)
       compare(fixture.part_settingsPanel.currentPage, "ai")
@@ -211,7 +211,7 @@ EventPathFixture {
       compare(fixture.part_settingsPanel.currentPage, "customization")
       compare(fixture.part_settingsPanel.pagePickerControl.currentIndex, 0)
       keyClick(Qt.Key_Escape)
-      compare(fixture.part_settingsPanel.filteredPages.length, 6)
+      compare(fixture.part_settingsPanel.filteredPages.length, 7)
       keyClick(Qt.Key_Escape)
       verify(!fixture.part_settingsPanel.visible)
       fixture.part_settingsPanel.visible = true
@@ -347,19 +347,22 @@ EventPathFixture {
       fixture.part_settingsPanel.snapshot = {
         preferences: baseline.preferences,
         shortcuts: [
-          { label: "Open CommandDeck", status: "configured", chords: ["SUPER + Space"] },
-          { label: "Open System Menu", status: "not-configured", chords: [],
+          { id: "commanddeck", label: "Open CommandDeck", status: "configured", chords: ["SUPER + Space"] },
+          { id: "system-menu", label: "Open System Menu", status: "not-configured", chords: [],
             detail: "hyprctl was not found" }
         ],
         customizations: []
       }
       fixture.part_settingsPanel.visible = true
-      compare(fixture.part_settingsPanel.renderedShortcutCount, 2)
-      compare(fixture.part_settingsPanel.renderedShortcutStatusAt(0), "SUPER + Space")
-      verify(fixture.part_settingsPanel.renderedShortcutStatusAt(1).indexOf("hyprctl was not found") >= 0)
-      verify(fixture.part_settingsPanel.renderedShortcutAccessibleNameAt(0).indexOf("SUPER + Space") >= 0)
-      verify(fixture.part_settingsPanel.renderedShortcutAccessibleNameAt(1)
-        .indexOf("Not configured") >= 0)
+      const page = fixture.part_settingsPanel.parts.shortcutsScroll
+      const launcher = page.hotkeyRow
+      compare(launcher.pill.chord, "SUPER + Space")
+      verify(!launcher.pill.recordable)
+      compare(launcher.pill.Accessible.name, "Open CommandDeck shortcut")
+      compare(page.part_shortcutRepeater.count, 1)
+      const unavailable = page.part_shortcutRepeater.itemAt(0)
+      compare(unavailable.pill.contentItem.text, "Not set")
+      verify(unavailable.binding.reason.indexOf("hyprctl was not found") >= 0)
       fixture.part_settingsPanel.snapshot = baseline
     }
 

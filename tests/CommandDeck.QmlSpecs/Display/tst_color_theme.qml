@@ -1,4 +1,5 @@
 import QtQuick
+import "../../../qml/common/InterfaceFonts.js" as InterfaceFonts
 import QtTest
 import "../../../qml/common" as CommandDeck
 import "../../../qml/common/ColorThemeFormat.js" as Format
@@ -41,6 +42,12 @@ Item {
   Column {
     CommandDeck.SettingsField { id: field; theme: theme }
     CommandDeck.DeckButton { id: button; theme: theme; text: "Reset colors" }
+    CommandDeck.SettingsSegmented {
+      id: contrastSegments
+      theme: theme
+      options: [{ id: "one", title: "One" }, { id: "two", title: "Two" }]
+    }
+    CommandDeck.SettingsCheck { id: contrastCheck; theme: theme; checked: true }
   }
 
   TestCase {
@@ -50,6 +57,37 @@ Item {
     function init() {
       theme.overrideHostColors = false
       theme.deckColors = null
+      button.kind = "secondary"
+      button.enabled = true
+    }
+
+    function test_accent_text_uses_higher_contrast_data() {
+      return [
+        { tag: "white", accent: "#ffffff", ink: "#10131a" },
+        { tag: "black", accent: "#000000", ink: "#ffffff" },
+        { tag: "default light blue", accent: "#8ab4f8", ink: "#10131a" },
+        { tag: "medium grey", accent: "#b1b1b1", ink: "#10131a" },
+        { tag: "dark blue", accent: "#123b80", ink: "#ffffff" },
+        { tag: "saturated red", accent: "#ff0000", ink: "#10131a" }
+      ]
+    }
+
+    function test_accent_text_uses_higher_contrast(data) {
+      theme.overrideHostColors = true
+      theme.deckColors = { accent: data.accent, background: "#0e0e11", text: "#f1f1f1" }
+      button.kind = "primary"
+      verify(Qt.colorEqual(theme.accentText, data.ink))
+      const other = data.ink === "#ffffff" ? "#10131a" : "#ffffff"
+      verify(Format.contrastRatio(data.ink, data.accent) >= Format.contrastRatio(other, data.accent),
+        "the selected foreground has the higher WCAG contrast ratio")
+      verify(Qt.colorEqual(button.contentItem.color, data.ink), "primary button uses the resolved accent ink")
+      button.enabled = false
+      verify(Qt.colorEqual(button.contentItem.color, data.ink), "disabled primary buttons keep the same legible ink")
+      button.enabled = true
+      const selected = contrastSegments.contentItem.children.filter(item => item.checked === true)[0]
+      verify(selected)
+      verify(Qt.colorEqual(selected.contentItem.color, data.ink), "selected segment uses the resolved accent ink")
+      verify(Qt.colorEqual(contrastCheck.indicator.children[0].color, data.ink), "accent checkbox uses the resolved accent ink")
     }
 
     function test_format_normalizes_and_rejects_colors() {
@@ -123,7 +161,11 @@ Item {
       verify(Qt.colorEqual(theme.text, "#f1f1f1"), "CommandDeck text replaces the host's")
       verify(Qt.colorEqual(theme.accent, "#8ab4f8"))
       verify(Qt.colorEqual(theme.popupBackground, "#0e0e11"))
-      compare(theme.fontFamily, "Host Sans", "fonts keep following the host")
+      compare(theme.monoFontFamily, "Host Sans", "machine text keeps following the host")
+      compare(theme.fontFamily, InterfaceFonts.sansFamily(), "UI text uses Sans by default")
+      theme.interfaceFont = "shell"
+      compare(theme.fontFamily, "Host Sans", "Shell font follows the host")
+      theme.interfaceFont = "sans"
       compare(theme.radius, 10, "metrics keep following the host")
     }
 

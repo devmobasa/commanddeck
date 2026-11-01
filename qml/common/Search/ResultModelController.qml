@@ -43,6 +43,7 @@ QtObject {
       case Protocol.ResultKinds.AiCommand: return "AI"
       case Protocol.ResultKinds.Status: return "Status"
       case Protocol.ResultKinds.Mail: return "Mail"
+      case Protocol.ResultKinds.Setting: return "Settings"
       default: return kind
     }
   }
@@ -141,6 +142,8 @@ QtObject {
         === nextMetadata[Protocol.ResultMetadataKeys.OmarchyMenu]
       && previousMetadata[Protocol.ResultMetadataKeys.OmarchyMenuItems]
         === nextMetadata[Protocol.ResultMetadataKeys.OmarchyMenuItems]
+      && previousMetadata[Protocol.ResultMetadataKeys.Keybinding]
+        === nextMetadata[Protocol.ResultMetadataKeys.Keybinding]
       && sameList(previous.aliases, next.aliases, (left, right) => left === right)
       && sameList(previous.matchedRanges, next.matchedRanges,
         (left, right) => left.start === right.start && left.length === right.length)

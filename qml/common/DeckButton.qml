@@ -26,11 +26,11 @@ KeyboardButton {
   readonly property bool primary: root.kind === Ui.ButtonVariant.Primary
   readonly property bool dangerous: root.kind === Ui.ButtonVariant.Danger
 
-  implicitHeight: Math.round((root.compact ? 32 : 38) * root.theme.scale)
+  implicitHeight: Math.round(root.theme.fontBody * 2.1)
   implicitWidth: Math.max(
-    contentText.implicitWidth + Math.round((root.compact ? 20 : 28) * root.theme.scale),
+    contentText.implicitWidth + Math.round(24 * root.theme.scale),
     implicitHeight)
-  leftPadding: Math.round((root.compact ? 10 : 14) * root.theme.scale)
+  leftPadding: Math.round(12 * root.theme.scale)
   rightPadding: leftPadding
   hoverEnabled: true
   focusPolicy: Qt.StrongFocus
@@ -40,9 +40,8 @@ KeyboardButton {
     text: root.text
     // Titles can come from extensions and the assistant; show them as written.
     textFormat: Text.PlainText
-    color: !root.enabled
-      ? root.theme.textFaint
-      : root.primary ? root.theme.background
+    color: root.primary ? root.theme.accentText
+      : !root.enabled ? root.theme.textFaint
       : root.dangerous ? root.theme.urgent
       : root.theme.text
     horizontalAlignment: Text.AlignHCenter
@@ -51,34 +50,22 @@ KeyboardButton {
     // the width. Eliding collapses the button's implicitWidth in a tight layout
     // and truncates the label ("Sign out" -> "Sign o…"), same as AgentButton.
     font.family: root.theme.fontFamily
-    font.pixelSize: root.compact ? root.theme.fontBody : Math.round(root.theme.fontBody * 1.1)
-    font.weight: root.primary ? Font.DemiBold : Font.Medium
+    font.pixelSize: root.theme.fontBody
+    font.weight: Font.Normal
   }
 
-  // Hover and keyboard focus must read at a glance on the dark launcher
-  // palette: the fill shifts toward the accent, the border thickens to the
-  // text colour, and keyboard focus adds a ring outside the button.
+  // Pointer hover changes the pill fill; keyboard focus adds an outer ring.
   readonly property bool emphasized: root.enabled && (root.hovered || root.activeFocus)
   readonly property bool focusRingVisible: root.activeFocus
 
   background: Rectangle {
-    radius: Math.max(6, root.theme.radiusSmall)
-    color: !root.enabled
-      ? (root.flat ? "transparent" : root.theme.surface)
-      : root.flat && !root.emphasized && !root.down ? "transparent"
-      : root.primary
-        ? (root.down ? root.tint(root.theme.accent, 0.72)
-          : root.emphasized ? root.theme.accent : root.tint(root.theme.accent, 0.9))
-      : root.dangerous
-        ? (root.down ? root.tint(root.theme.urgent, 0.42)
-          : root.activeFocus ? root.tint(root.theme.urgent, 0.34)
-          : root.hovered ? root.tint(root.theme.urgent, 0.26)
-          : root.tint(root.theme.urgent, 0.08))
-        : (root.down ? root.theme.surfaceStrong
-          : root.activeFocus ? root.tint(root.theme.accent, 0.58)
-          : root.hovered ? root.tint(root.theme.accent, 0.38)
-          : root.theme.surfaceStrong)
-    border.width: root.emphasized ? 3 : root.flat ? 0 : 1
+    radius: root.theme.radius > 0 ? height / 2 : 0
+    color: root.flat && !root.hovered && !root.down ? "transparent"
+      : root.primary ? root.theme.accent
+      : root.down ? root.tint(root.theme.text, 0.18)
+      : root.hovered ? root.tint(root.theme.text, 0.14)
+      : root.theme.surfaceStrong
+    border.width: 0
     border.color: root.emphasized
       ? root.theme.text
       : root.primary ? root.theme.accent
@@ -87,11 +74,11 @@ KeyboardButton {
 
     Rectangle {
       anchors.fill: parent
-      anchors.margins: -Math.round(5 * root.theme.scale)
+      anchors.margins: -2
       visible: root.focusRingVisible
       color: "transparent"
       radius: parent.radius + Math.round(4 * root.theme.scale)
-      border.width: Math.max(4, Math.round(4 * root.theme.scale))
+      border.width: 2
       border.color: root.dangerous ? root.theme.urgent : root.theme.focusRing
     }
   }

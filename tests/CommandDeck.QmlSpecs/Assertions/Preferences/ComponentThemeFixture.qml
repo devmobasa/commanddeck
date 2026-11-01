@@ -14,6 +14,7 @@ QtObject {
   readonly property color textMuted: "#bbbbbb"
   readonly property color textFaint: "#888888"
   readonly property color accent: "#6699ff"
+  readonly property color accentText: "white"
   readonly property color focusRing: theme.accent
   readonly property color surfaceStrong: "#222222"
   readonly property color background: "#090909"
@@ -39,6 +40,7 @@ QtObject {
   readonly property int fontHeading: 16
   readonly property int fontTitle: 14
   readonly property string fontFamily: "sans-serif"
+  readonly property string monoFontFamily: "monospace"
   readonly property int rowHeight: 48
   readonly property int compactRowHeight: 38
   readonly property int compactIconSize: 26

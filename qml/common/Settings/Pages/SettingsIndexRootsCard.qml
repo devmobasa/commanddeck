@@ -65,7 +65,7 @@ SettingsCard {
 
   theme: card.host.theme
   searchQuery: card.host.part_settingsSearch.text
-  searchTerms: "search indexed folders roots path add remove disable enable configuration missing folder"
+  settingId: Protocol.SettingIds.IndexedFolders
   title: "Indexed folders"
   description: "Add folders or disable configuration folders. Changes apply immediately. Privacy exclusions still apply."
 
@@ -73,6 +73,7 @@ SettingsCard {
     Layout.fillWidth: true
     SettingsField {
       id: pathField
+      machineText: true
       theme: card.theme
       Layout.fillWidth: true
       placeholderText: "Folder path, for example ~/Documents"
@@ -150,7 +151,7 @@ SettingsCard {
         textFormat: Text.PlainText
         wrapMode: Text.WrapAnywhere
         color: card.theme.text
-        font.family: card.theme.fontFamily
+        font.family: card.theme.monoFontFamily
         font.pixelSize: card.theme.fontBody
       }
       Text {

@@ -202,7 +202,7 @@ public static partial class Program
                     .AsTask( )
                     .WaitAsync( TimeSpan.FromSeconds( 5 ), CancellationToken.None );
 
-                Equal( "app:report-viewer: launch | file:report: open,collect,browse-parent,reveal,copy-path,copy-file-url",
+                Equal( "app:report-viewer: launch,launch-new | file:report: open,collect,browse-parent,reveal,copy-path,copy-file-url",
                     DescribeRows( outcome.Results, withOpenWith: true ) );
             }
 

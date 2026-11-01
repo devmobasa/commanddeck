@@ -5,6 +5,7 @@ namespace CommandDeck;
 public static class ResultKinds
 {
     public const string Application = "application";
+    public const string Setting = "setting";
     public const string File = "file";
     public const string Configuration = "configuration";
     public const string Omarchy = "omarchy";
@@ -51,6 +52,7 @@ public static class SourceIds
     public const string Hey = "hey";
     public const string DesktopControls = "desktop-controls";
     public const string Processes = "processes";
+    public const string Settings = "settings";
 
     public static readonly IReadOnlySet<string> All = new HashSet<string>( StringComparer.Ordinal )
     {
@@ -69,6 +71,7 @@ public static class SourceIds
         Calculator,
         Ai,
         Status,
+        Settings,
         SystemdUnits,
         Timezone,
         WebSearch,
@@ -88,6 +91,7 @@ public static class ActionKinds
     public const string CollectFile = "collect-file";
     public const string ClipboardHistory = "clipboard-history";
     public const string OpenClipboardHistory = "open-clipboard-history";
+    public const string OpenSettings = "open-settings";
     public const string RunScript = "run-script";
     public const string SnippetCopy = "snippet-copy";
     public const string SnippetPreview = "snippet-preview";

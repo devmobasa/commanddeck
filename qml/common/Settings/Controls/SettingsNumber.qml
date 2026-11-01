@@ -17,16 +17,17 @@ SpinBox {
   Keys.priority: Keys.BeforeItem
   Keys.onPressed: event => TabFence.route(root.parent, event)
 
-  implicitHeight: Math.round(38 * root.theme.scale)
-  implicitWidth: Math.round(180 * root.theme.scale)
+  implicitHeight: Math.round(root.theme.fontBody * 2.1)
+  implicitWidth: Math.round(root.theme.fontBody * 4.5) + suffixLabel.implicitWidth + (root.suffix.length > 0 ? Math.round(6 * root.theme.scale) : 0)
   editable: true
+  wheelEnabled: true
   hoverEnabled: true
   focusPolicy: Qt.StrongFocus
-  leftPadding: root.down.indicator.width + Math.round(6 * root.theme.scale)
-  rightPadding: root.up.indicator.width + Math.round(6 * root.theme.scale)
+  leftPadding: Math.round(6 * root.theme.scale)
+  rightPadding: root.up.indicator.width + suffixLabel.width + Math.round(6 * root.theme.scale)
 
   textFromValue: function(value, locale) {
-    return String(value) + (root.suffix.length > 0 ? " " + root.suffix : "")
+    return String(value)
   }
   valueFromText: function(text, locale) {
     const digits = String(text).replace(/[^0-9]/g, "")
@@ -41,55 +42,72 @@ SpinBox {
 
     text: root.displayText
     color: root.enabled ? root.theme.text : root.theme.textFaint
-    horizontalAlignment: Qt.AlignHCenter
+    horizontalAlignment: Qt.AlignRight
     verticalAlignment: Qt.AlignVCenter
     readOnly: !root.editable
     validator: root.validator
     inputMethodHints: Qt.ImhDigitsOnly
     selectByMouse: true
-    font.family: root.theme.fontFamily
-    font.pixelSize: Math.round(root.theme.fontBody * 1.15)
-    font.weight: Font.Medium
+    font.family: root.theme.monoFontFamily
+    font.pixelSize: root.theme.fontBody
+    font.weight: Font.Normal
   }
 
+  Text {
+    id: suffixLabel
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    text: root.suffix
+    color: root.theme.textMuted
+    font.family: root.theme.fontFamily
+    font.pixelSize: root.theme.fontBody
+  }
   component StepButton: Rectangle {
     property bool pressedState: false
     property bool hoveredState: false
-    property string glyph: "+"
-    property bool enabledState: true
-    width: Math.round(34 * root.theme.scale)
-    height: root.height
-    color: pressedState ? root.tint(root.theme.text, 0.16)
-      : hoveredState ? root.tint(root.theme.text, 0.10) : "transparent"
-    radius: Math.max(4, root.theme.radiusSmall)
-    Text {
+    property bool upward: true
+    width: Math.round(root.theme.fontBody * 1.3)
+    height: root.height / 2
+    color: pressedState || hoveredState ? root.theme.surfaceStrong : "transparent"
+    radius: Math.round(3 * root.theme.scale)
+    Canvas {
       anchors.centerIn: parent
-      text: parent.glyph
-      color: parent.enabledState ? root.theme.text : root.theme.textFaint
-      font.family: root.theme.fontFamily
-      font.pixelSize: Math.round(root.theme.fontBody * 1.3)
-      font.weight: Font.DemiBold
+      width: Math.round(8 * root.theme.scale)
+      height: Math.round(5 * root.theme.scale)
+      readonly property bool upward: parent.upward
+      readonly property color ink: root.theme.textMuted
+      onInkChanged: requestPaint()
+      onUpwardChanged: requestPaint()
+      onPaint: {
+        const ctx = getContext("2d")
+        ctx.reset()
+        ctx.strokeStyle = ink
+        ctx.lineWidth = 1.5
+        ctx.beginPath()
+        ctx.moveTo(1, upward ? height - 1 : 1)
+        ctx.lineTo(width / 2, upward ? 1 : height - 1)
+        ctx.lineTo(width - 1, upward ? height - 1 : 1)
+        ctx.stroke()
+      }
     }
   }
-
   up.indicator: StepButton {
-    x: root.width - width
-    glyph: "+"
+    x: root.width - width - suffixLabel.width - (root.suffix.length > 0 ? Math.round(6 * root.theme.scale) : 0)
+    y: 0
+    upward: true
     pressedState: root.up.pressed
     hoveredState: root.up.hovered
-    enabledState: root.enabled && root.value < root.to
   }
-
   down.indicator: StepButton {
-    x: 0
-    glyph: "−"
+    x: root.up.indicator.x
+    y: root.height / 2
+    upward: false
     pressedState: root.down.pressed
     hoveredState: root.down.hovered
-    enabledState: root.enabled && root.value > root.from
   }
-
   background: Rectangle {
-    radius: Math.max(4, root.theme.radiusSmall)
+    width: root.width - suffixLabel.width - (root.suffix.length > 0 ? Math.round(6 * root.theme.scale) : 0)
+    radius: Math.round(6 * root.theme.scale)
     color: root.theme.surfaceStrong
     border.width: root.activeFocus ? 2 : 1
     border.color: root.activeFocus ? root.theme.focusRing : root.theme.separator

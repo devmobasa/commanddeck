@@ -430,7 +430,10 @@ Item {
       waitForValue(surface.previewHighlightControl, "count", 1)
       const rtlOverlay = surface.previewHighlightControl.itemAt(0)
       waitForValue(rtlOverlay, "segmentCount", 1)
-      verify(rtlOverlay.segmentAt(0).width > 20, "RTL range uses both visual endpoints")
+      const rtlStart = surface.previewControl.positionToRectangle(0)
+      const rtlEnd = surface.previewControl.positionToRectangle(3)
+      const rtlWidth = Math.abs(rtlStart.x - rtlEnd.x)
+      verify(rtlWidth > 1 && rtlOverlay.segmentAt(0).width >= rtlWidth - 1, "RTL range uses both visual endpoints at the current UI font size")
       controller.preview = {incarnation: "inc1", revision: 1, queryGeneration: controller.queryGeneration,
         slice: {text: "abc אבג xyz", ranges: [{startUtf16: 2, lengthUtf16: 4}], matchCount: 1, matchIndex: 0, selectedRange: 0}}
       waitForValue(surface.previewHighlightControl, "count", 1)

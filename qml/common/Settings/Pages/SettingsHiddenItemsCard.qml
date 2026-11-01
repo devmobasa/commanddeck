@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import "../../UiConstants.js" as Ui
 import QtQuick.Layouts
+import "../../Protocol.js" as Protocol
 
 // Settings → Customization → Hidden items. Search the list, restore an entry
 // without opening it, and see which entries no longer exist. Pages are loaded
@@ -73,7 +74,7 @@ SettingsCard {
       Layout.preferredWidth: Math.round(30 * card.theme.scale)
       Layout.preferredHeight: Layout.preferredWidth
       Layout.alignment: Qt.AlignVCenter
-      radius: Math.max(4, card.theme.radiusSmall)
+      radius: card.theme.radiusSmall
       color: card.theme.surfaceStrong
 
       Image {
@@ -111,8 +112,8 @@ SettingsCard {
         color: hiddenRow.available ? card.theme.text : card.theme.textMuted
         elide: Text.ElideRight
         font.family: card.theme.fontFamily
-        font.pixelSize: Math.round(card.theme.fontBody * 1.1)
-        font.weight: Font.Medium
+        font.pixelSize: card.theme.fontBody
+        font.weight: Font.Normal
       }
 
       Text {
@@ -153,7 +154,7 @@ SettingsCard {
   }
 
   searchQuery: card.host.part_settingsSearch.text
-  searchTerms: "customization hidden items hide restore don't show unavailable"
+  settingId: Protocol.SettingIds.HiddenItems
   theme: card.host.theme
   title: "Hidden items"
   description: "Results you chose not to show. Restore brings one back without opening it. An unavailable entry no longer exists; restoring it only forgets the preference."

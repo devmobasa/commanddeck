@@ -13,6 +13,9 @@ public sealed partial class CommandDeckRuntime : IAsyncDisposable, IAgentLaunche
     private readonly InvocationWorkflow _invocations;
     private readonly FilePreviewWorkflow _filePreviews;
     private HerdrClient _herdr = new( );
+
+    // Hyprland chords and copyable bindings on launcher rows; the factory sets it.
+    private KeybindingHints? _keybindings;
     private CurrencyRateService? _exchangeRates;
     private readonly FileSelectionService _fileSelection;
     private readonly AiProviderSettingsService _aiSettings;
@@ -65,6 +68,7 @@ public sealed partial class CommandDeckRuntime : IAsyncDisposable, IAgentLaunche
         resources.OwnDisposable( _aiSettingsMutex );
         resources.Own( _search );
         resources.Add( DisposeAgentAsync );
+        resources.Add( DisposeShortcutsAsync );
 
         if ( catalog is IFileHandlerCatalog fileHandlers )
         {

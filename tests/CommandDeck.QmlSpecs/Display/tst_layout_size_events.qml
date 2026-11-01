@@ -18,8 +18,8 @@ Item {
       panel.visible = true
       waitForValue(panel.searchControl, "activeFocus", true)
       typeText("panel percent")
+      // Enter goes straight to the matching card's first control.
       keyClick(Qt.Key_Return)
-      keyClick(Qt.Key_Tab)
       waitForValue(panel.layoutWidthControl.sliderControl, "activeFocus", true)
       if (axis === "Height") keyClick(Qt.Key_Tab)
       const control = panel["layout" + axis + "Control"]

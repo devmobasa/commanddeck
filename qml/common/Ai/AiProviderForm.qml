@@ -112,6 +112,7 @@ ScrollView {
 
       SettingsField {
         id: baseUrlField
+        machineText: true
         theme: editorScroll.host.theme
         Layout.fillWidth: true
         enabled: !editorScroll.host.busy
@@ -152,6 +153,7 @@ ScrollView {
 
       SettingsField {
         id: credentialNameField
+        machineText: true
         theme: editorScroll.host.theme
         Layout.fillWidth: true
         visible: editorScroll.host.credentialKind !== Protocol.AiCredentialKinds.None
@@ -214,6 +216,7 @@ ScrollView {
 
       SettingsField {
         id: modelField
+        machineText: true
         theme: editorScroll.host.theme
         Layout.fillWidth: true
         placeholderText: editorScroll.host.kind === Protocol.AiAdapterKinds.Ollama ? "qwen3:8b" : "gpt-5-mini"
@@ -241,6 +244,7 @@ ScrollView {
 
       SettingsField {
         id: contextField
+        machineText: true
         theme: editorScroll.host.theme
         Layout.preferredWidth: Math.round(180 * editorScroll.host.theme.scale)
         placeholderText: "Optional"
@@ -273,6 +277,7 @@ ScrollView {
 
       SettingsField {
         id: idField
+        machineText: true
         theme: editorScroll.host.theme
         Layout.fillWidth: true
         readOnly: editorScroll.host.mode !== editorScroll.host.editorModes.Add

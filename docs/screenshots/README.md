@@ -22,6 +22,8 @@ The script needs Quickshell (`qs`) and `ffmpeg` on PATH. Scenes live in
 | `themes` | `themes.png` |
 | `demo` | `demo.gif`, `demo.mp4` |
 | `whats-new` | `whats-new.gif`, `whats-new.mp4` |
+| `herdr-tour` | `herdr-tour.gif`, `herdr-tour.mp4` |
+| `herdr-jump` | `herdr-jump.gif`, `herdr-jump.mp4` |
 | `settings` | `settings-display.png`, `settings-layout.png`, `settings-search.png`, `settings-folders.png`, `settings-quicklinks.png`, `settings-quicklink-edit.png` |
 | `social` | `social-preview.png` |
 
@@ -33,6 +35,25 @@ See [display sizing acceptance](../testing.md#qml).
 
 Re-run the affected scenes after a visible UI change and review the images
 before committing them.
+
+## Showcase
+
+The [showcase](../showcase.md) tours come from six optional scenes, also
+excluded from the default run. Each writes a GIF, an MP4, and a `<scene>-frames`
+directory, so render them into a temporary directory and copy only the GIF and
+MP4 files here:
+
+```bash
+dotnet scripts/capture-gallery.cs --output /tmp/commanddeck-showcase \
+  showcase-shortcuts-chapters showcase-shortcuts-captions \
+  showcase-settings-search-chapters showcase-settings-search-captions \
+  showcase-new-look-chapters showcase-new-look-captions
+cp /tmp/commanddeck-showcase/showcase-*.{gif,mp4} docs/screenshots/
+```
+
+The storyboards are in
+[ShowcaseTimeline.js](../../tests/CommandDeck.Gallery/ShowcaseTimeline.js);
+[SHOWCASE.md](../../tests/CommandDeck.Gallery/SHOWCASE.md) describes the scenes.
 
 ## How they are made
 
@@ -65,6 +86,18 @@ desktop windows, or notifications are read.
   Match, **↑** search recall, **Ctrl+I**, compact rows, Folders, and Quicklinks.
   Ranking and recall are prepared responses. No usage or query history is recorded.
   Both GIFs use a 96-colour palette at 1280 pixels wide; the tour stays under 1.5 MB.
+- **herdr-tour.gif** and **herdr-tour.mp4** show a captioned jump, about 15 seconds
+  long: CommandDeck opens over Herdr, `hspace:` lists ten spaces, **Ctrl+Enter**
+  browses the third space's six tabs, and **Enter** lands on the fourth. The Herdr
+  window is drawn from text captures of a throwaway Herdr server with fictional
+  projects (`HerdrTourData.js`), before and after a real `herdr tab focus`; the
+  launcher rows follow the Herdr provider's shapes. No personal Herdr session is read.
+- **herdr-jump.gif** and **herdr-jump.mp4** show a jump across Hyprland workspaces,
+  about 11 seconds long: from nvim and lazygit on workspace 1, `herdr: auth` finds
+  one tab and **Enter** slides to workspace 3, where Herdr shows taskboard › auth
+  flow. The windows are text captures of the same throwaway Herdr server, nvim, and
+  lazygit with fictional projects (`HerdrJumpData.js`); the bar and the slide are
+  drawn. Typed queries filter the Herdr rows by label; the daemon does not rank them.
 - **Settings** uses the production Settings pages with fictional indexed roots
   and quicklinks. Enabled Archive has a missing-folder warning and Disable;
   disabled Downloads has no warning and offers Enable. These are prepared states;

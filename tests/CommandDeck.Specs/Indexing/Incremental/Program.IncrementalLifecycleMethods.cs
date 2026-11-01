@@ -187,7 +187,10 @@ public static partial class Program
 
             True( !missingRoot.Watched );
             True( missingRoot.LastError?.Contains( "does not exist", StringComparison.Ordinal ) == true );
-            True( !string.IsNullOrWhiteSpace( missingRoot.Remediation ) );
+            True( missingRoot.Missing );
+            // A missing folder is not a watch-limit problem.
+            Equal( "Stop indexing this folder, or create it.", missingRoot.Remediation );
+            True( !status.Roots.Single( value => string.Equals( value.Path, watched, StringComparison.Ordinal ) ).Missing );
         }
         finally
         {

@@ -21,6 +21,7 @@ public static partial class Program
                 CliAgentBackendFactory = constructionOptions?.CliAgentBackendFactory,
                 PackageCatalogFactory = constructionOptions?.PackageCatalogFactory,
                 AgentClock = constructionOptions?.AgentClock,
+                ShortcutEditorFactory = constructionOptions?.ShortcutEditorFactory,
                 PackageHelperFactory = constructionOptions?.PackageHelperFactory
             }, CancellationToken.None );
 

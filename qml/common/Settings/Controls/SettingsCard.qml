@@ -1,18 +1,23 @@
 import "../.."
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import "../SettingsIndex.js" as SettingsIndex
 
-// One titled group of related settings. Cards give the page rhythm: a title,
-// one sentence of intent, then rows. Content goes into `body`.
-Rectangle {
+// A searchable group: heading above an inset surface, with dividers between
+// visible children. The outer item remains the search/spotlight target.
+Item {
   id: root
-
   required property var theme
   function tint(value, amount) { return Qt.rgba(value.r, value.g, value.b, amount) }
   property string title: ""
   property string description: ""
+  property Component headingAccessory: null
+  readonly property alias accessoryItem: accessory.item
   property string searchQuery: ""
-  property string searchTerms: ""
+  property string settingId: ""
+  readonly property var settingEntry: SettingsIndex.entry(root.settingId)
+  readonly property string searchTerms: root.settingEntry ? root.settingEntry.keywords : ""
   property var wheelForwarder: null
   readonly property bool matchesSearch: {
     const text = (root.title + " " + root.description + " " + root.searchTerms).toLowerCase()
@@ -21,15 +26,9 @@ Rectangle {
   visible: matchesSearch
   property bool danger: false
   default property alias body: content.data
-
-  readonly property int pad: Math.round(18 * root.theme.scale)
-
+  readonly property int pad: Math.round(14 * root.theme.scale)
   Layout.fillWidth: true
-  implicitHeight: column.implicitHeight + root.pad * 2
-  radius: Math.max(6, root.theme.radius)
-  color: root.theme.surface
-  border.width: 1
-  border.color: root.danger ? root.tint(root.theme.urgent, 0.35) : root.theme.separator
+  implicitHeight: column.implicitHeight
   Accessible.role: Accessible.Grouping
   Accessible.name: root.title
 
@@ -41,26 +40,28 @@ Rectangle {
 
   ColumnLayout {
     id: column
-    anchors.fill: parent
-    anchors.margins: root.pad
-    spacing: Math.round(10 * root.theme.scale)
-
+    width: parent.width
+    spacing: Math.round(6 * root.theme.scale)
     ColumnLayout {
       Layout.fillWidth: true
+      Layout.leftMargin: root.pad
+      Layout.rightMargin: root.pad
       spacing: Math.round(3 * root.theme.scale)
       visible: root.title.length > 0 || root.description.length > 0
-
-      Text {
+      RowLayout {
+        Layout.fillWidth: true
+        Text {
         Layout.fillWidth: true
         visible: root.title.length > 0
         text: root.title
-        color: root.danger ? root.theme.urgent : root.theme.text
+        color: root.theme.text
         font.family: root.theme.fontFamily
-        font.pixelSize: root.theme.fontHeading
+        font.pixelSize: root.theme.fontBody
         font.weight: Font.DemiBold
         elide: Text.ElideRight
+        }
+        Loader { id: accessory; sourceComponent: root.headingAccessory }
       }
-
       Text {
         Layout.fillWidth: true
         visible: root.description.length > 0
@@ -68,14 +69,61 @@ Rectangle {
         color: root.theme.textMuted
         wrapMode: Text.Wrap
         font.family: root.theme.fontFamily
-        font.pixelSize: root.theme.fontBody
+        font.pixelSize: root.theme.fontSmall
       }
     }
-
-    ColumnLayout {
-      id: content
+    Rectangle {
+      id: surface
       Layout.fillWidth: true
-      spacing: Math.round(4 * root.theme.scale)
+      implicitHeight: content.implicitHeight
+      objectName: "settingsCardSurface"
+      radius: Math.min(root.theme.radius, Math.round(10 * root.theme.scale))
+      color: root.theme.surface
+      border.width: root.danger ? 1 : 0
+      border.color: root.tint(root.theme.urgent, 0.35)
+      ColumnLayout {
+        id: content
+        objectName: "settingsGroupBody"
+        x: root.pad
+        width: parent.width - root.pad * 2
+        spacing: 0
+        // Controls that supply their own row padding mark themselves. Other
+        // content (lists, editors, buttons) gets padding as one group row.
+        function padChildren() {
+          for (const child of children) {
+            if (child.settingsRow === true || !child.implicitHeight) continue
+            child.Layout.topMargin = Math.round(10 * root.theme.scale)
+            child.Layout.bottomMargin = Math.round(10 * root.theme.scale)
+          }
+        }
+        onChildrenChanged: Qt.callLater(padChildren)
+        onImplicitHeightChanged: Qt.callLater(padChildren)
+        Component.onCompleted: Qt.callLater(padChildren)
+        Connections {
+          target: root.theme
+          function onScaleChanged() { content.padChildren() }
+        }
+      }
+      Repeater {
+        model: content.children
+        delegate: Rectangle {
+          required property var modelData
+          required property int index
+          readonly property bool preceding: {
+            for (let before = 0; before < index; before++) {
+              const child = content.children[before]
+              if (child.visible && child.height > 0) return true
+            }
+            return false
+          }
+          x: root.pad
+          y: modelData.y - (modelData.settingsRow === true ? 0 : Math.round(10 * root.theme.scale))
+          width: content.width
+          height: 1
+          visible: preceding && modelData.visible && modelData.height > 0
+          color: root.theme.separator
+        }
+      }
     }
   }
 }

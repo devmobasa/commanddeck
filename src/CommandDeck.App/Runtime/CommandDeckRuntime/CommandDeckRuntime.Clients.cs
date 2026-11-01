@@ -10,11 +10,24 @@ public sealed partial class CommandDeckRuntime : IClientLifecycle
         RevokeInvocationClient( ownerId );
     }
 
-    ValueTask IClientLifecycle.CloseClientSessionsAsync( string ownerId )
+    async ValueTask IClientLifecycle.CloseClientSessionsAsync( string ownerId )
     {
         _extensionSearch?.CloseOwner( ownerId );
 
-        return _extensionSessions?.CloseAsync( ownerId ) ?? ValueTask.CompletedTask;
+        try
+        {
+            if ( _shortcuts is not null )
+            {
+                await _shortcuts.Recording.StopAsync( ownerId ).ConfigureAwait( false );
+            }
+        }
+        finally
+        {
+            if ( _extensionSessions is not null )
+            {
+                await _extensionSessions.CloseAsync( ownerId ).ConfigureAwait( false );
+            }
+        }
     }
 
     // The transport has closed the extension sessions and joined the request

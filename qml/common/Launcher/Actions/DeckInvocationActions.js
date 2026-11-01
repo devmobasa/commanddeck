@@ -32,6 +32,19 @@ function invokeAction(root, result, action, confirmed, inputValues, fromUndo) {
     root.part_clipboardController.open("")
     return
   }
+  if (action.kind === Protocol.ActionKinds.OpenSettings) {
+    root.actionPanelOpen = false
+    root.pendingSettingUrl = action.arguments ? String(action.arguments[Protocol.ActionArgumentNames.Url] || "") : ""
+    root.pendingSettingId = action.arguments ? String(action.arguments[Protocol.ActionArgumentNames.SettingId] || "") : ""
+    if (action.arguments && action.arguments[Protocol.ActionArgumentNames.ShortcutDescription]) {
+      root.pendingShortcut = { id: action.arguments[Protocol.ActionArgumentNames.ShortcutId],
+        chord: action.arguments[Protocol.ActionArgumentNames.ShortcutChord] || "",
+        description: action.arguments[Protocol.ActionArgumentNames.ShortcutDescription],
+        command: action.arguments[Protocol.ActionArgumentNames.ShortcutCommand] || "" }
+    }
+    root.openSettings()
+    return
+  }
   if (action.kind === Protocol.ActionKinds.BrowseHerdrTabs) {
     root.actionPanelOpen = false
     root.part_navigation.browseHerdrSpace(result)
@@ -221,6 +234,16 @@ function invokeSelectedPrimary(root) {
   }
 
   root.invokeAction(result, result.actions[0], false)
+}
+
+// Shift+Enter opens another window of an application that already has one;
+// a row without Open New Window runs its primary action.
+function invokeSelectedNewWindow(root) {
+  const result = root.part_navigation.selectedResult()
+  const newWindow = result && result.actions ? result.actions.find(action => action.id === "launch-new") : null
+  if (!newWindow) return invokeSelectedPrimary(root)
+  if (!root.daemonAvailable || root.reconciliationPending || rejectStaleResults(root, result)) return
+  root.invokeAction(result, newWindow, false)
 }
 
 // Undoes the latest HEY change through the hidden undo action of the row it

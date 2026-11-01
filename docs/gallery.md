@@ -8,6 +8,7 @@ are lossless PNGs rendered at 3× pixel density; select one to open it at full r
 AI answers are prepared samples. The captures use no personal files, clipboard
 contents, accounts, or desktop windows. `dotnet scripts/capture-gallery.cs`
 regenerates them; the [capture notes](screenshots/README.md) explain how.
+For animated tours of the newer features, see the [showcase](showcase.md).
 
 ## Demo
 

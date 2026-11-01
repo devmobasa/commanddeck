@@ -33,6 +33,7 @@
     <Content Include="../../qml/common/ListKeys.js" Link="picker/ListKeys.js" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="../../qml/common/TabFence.js" Link="picker/TabFence.js" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="../../qml/common/UiConstants.js" Link="picker/UiConstants.js" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../qml/common/InterfaceFonts.js" Link="picker/InterfaceFonts.js" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="../../qml/common/ColorThemeFormat.js" Link="picker/ColorThemeFormat.js" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="../../schemas/commanddeck.schema.json"
              Condition="Exists('../../schemas/commanddeck.schema.json')"

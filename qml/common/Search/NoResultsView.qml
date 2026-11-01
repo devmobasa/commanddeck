@@ -118,7 +118,7 @@ Item {
           Text {
             text: Ui.QueryPrefix.Ai
             color: root.theme.accent
-            font.family: "monospace"
+            font.family: root.theme.monoFontFamily
             font.pixelSize: root.theme.fontSmall
           }
         }

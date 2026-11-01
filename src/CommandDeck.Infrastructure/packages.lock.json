@@ -10,20 +10,20 @@
       },
       "Microsoft.Data.Sqlite": {
         "type": "Direct",
-        "requested": "[11.0.0-rc.2.26504.105, )",
-        "resolved": "11.0.0-rc.2.26504.105",
-        "contentHash": "HTMsR2yafphuj6o0EdYPEsB2CBBSz/ixCew7/LblqmT31q1HiG5qKYy8s2XDM5YM7lmtNOhe7lNPiffcMe8j7A==",
+        "requested": "[11.0.0-rc.3.26522.148, )",
+        "resolved": "11.0.0-rc.3.26522.148",
+        "contentHash": "aJNlrqnGDFmUQZrDJqLph1v+JO+VJzXvfvouBEYhcQB3IE4ghbHgSRkwepnt9Q2OVfmMDMgSZR9u6zxANJ6EpA==",
         "dependencies": {
-          "Microsoft.Data.Sqlite.Core": "[11.0.0-rc.2.26504.105, 12.0.0-a)",
+          "Microsoft.Data.Sqlite.Core": "[11.0.0-rc.3.26522.148, 12.0.0-a)",
           "SQLitePCLRaw.bundle_e_sqlite3": "3.0.5",
           "SQLitePCLRaw.core": "3.0.5"
         }
       },
       "Microsoft.NET.ILLink.Tasks": {
         "type": "Direct",
-        "requested": "[11.0.0-rc.2.26504.105, )",
-        "resolved": "11.0.0-rc.2.26504.105",
-        "contentHash": "Mkb6kHfPr4/txc4n/41yUiEBT44Haup2qnyecIO1ADo2QB4YxleZHsOvgYJT6roL1SNuFSpbeNpoe70BJ953Uw=="
+        "requested": "[11.0.0-rc.3.26522.148, )",
+        "resolved": "11.0.0-rc.3.26522.148",
+        "contentHash": "SWnTMx96mhBr9LCOySJg1ETlEFFHVsPGdVT02JnYhtqk1+Vke1J7RU3VkKwEiErBr4FJ42Uu4k7GdOtkRuvs/Q=="
       },
       "Tmds.DBus.Protocol": {
         "type": "Direct",
@@ -33,8 +33,8 @@
       },
       "Microsoft.Data.Sqlite.Core": {
         "type": "Transitive",
-        "resolved": "11.0.0-rc.2.26504.105",
-        "contentHash": "1QCO8UCqwSbdNbNkf5B1RIDf7crc67HrnizWRM+4kr9nF+KjKdum8H+mnfekz6VoYlTzDsvbqRQkUz8hZho4MQ==",
+        "resolved": "11.0.0-rc.3.26522.148",
+        "contentHash": "xjpJx/FDpIwRK+Q5JaWYLgtlFatUO1tj1IrnZAW2PVFYtS8yyNeGIl+aqXwHIvzomnXt5LHsSzkZhj2l43GRtw==",
         "dependencies": {
           "SQLitePCLRaw.core": "3.0.5"
         }

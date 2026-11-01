@@ -139,6 +139,21 @@ For app invocations, arguments after a path, URL, or launch flag stay literal;
 `app: firefox https://example.test --private-window` keeps both arguments.
 Ordinary search queries continue to support exclusions and field clauses.
 
+### Applications that are already open
+
+Enter on an application that already has a window focuses that window and
+switches to its workspace instead of starting another copy; with several
+windows, the one used most recently. **Shift+Enter**, or **Open New Window** in
+the actions, always starts a new one. A window belongs to an application when
+its class or initial class is the desktop entry's `StartupWMClass` or desktop
+ID, without regard to case. A Chromium-based web app's class ends in its profile,
+such as `chrome-discord.com__channels_@me-Default` or `-Profile_1`, so that
+suffix is ignored and the app is found in any profile. Terminal entries, whose
+windows belong to the terminal, launches that open files, and sessions without
+Hyprland always start a new copy. The daemon reads `hyprctl -j clients` when
+you press Enter; if Hyprland does not acknowledge the focus, the application
+launches as before.
+
 Saved queries keep literal input in the optional `expression.literalQuery` field,
 including spacing, quotes, negative values, and an explicit assistant backend
 prefix. It has the same 4,096-character limit as the request query. Existing
@@ -157,6 +172,7 @@ a query preserves its expression; clipboard and HEY privacy checks still apply.
 | `hspace:` / `hspaces:` / `herdr-space:` | Herdr spaces only |
 | `htab:` / `htabs:` / `herdr-tab:` | Herdr tabs only |
 | `hattention:` / `herdr-attention:` | Herdr tabs whose agent status is blocked |
+| `agents:` / `hagents:` / `herdr-agents:` | Every Herdr agent across spaces, most urgent first |
 | `ctl:` / `control:` / `controls:` | built-in desktop controls; they also match plain search |
 | `kill:` / `proc:` / `process:` / `processes:` | the user's own processes; plain search offers only a row that opens this list |
 | `=` | calculator |
@@ -167,13 +183,44 @@ Field IDs are `title`, `metadata`, `path`, `content`, and `config`. Validated
 structured clauses cross the socket without being flattened and reparsed.
 Catalog queries use parameterized FTS5 prefix phrases and bounded fuzzy
 retrieval. Fuzzy matching supports exact, prefix, word-boundary, acronym, typo,
-and subsequence matches, including Latin diacritic folding. These weaker matches
-can remain useful in groups without qualifying for learned promotion.
+and subsequence matches, including Latin diacritic folding. A typo match needs
+four letters or digits and allows one edit, or two from eight: a changed, missing,
+extra, or swapped letter. It starts at a word start and can stop inside a word, so
+`fierf` finds Firefox before the word is complete, and it can continue across words,
+as in `googel chrome`. Only letters change: digits, spaces, and punctuation must
+match as typed, so `python3` does not match `python2`. An extra letter is accepted
+only where the match ends at a word end. These weaker matches can remain useful in
+groups without qualifying for learned promotion.
+
+### Settings
+
+Plain search also finds Settings. Typing `transparency`, `reduce motion`, or
+`assistant trust` offers the Settings card that holds it under a **Settings**
+heading, with its page in the subtitle, such as **Settings › Customization**.
+Enter opens Settings on that page, clears any Settings search that would hide
+the card, scrolls the card into view, and spotlights it: the rest of the panel
+dims for about two seconds and fades back, and the page stays usable throughout.
+With **Reduce motion**, the card gets a still outline instead. Matching uses
+the same words as Settings search; one index in Core (`SettingsIndex`) holds
+each card's ID, page, title, and words, and the QML cards read their search
+words from it. Queries shorter than three characters, filters, the calculator,
+the assistant, and command mode list no Settings rows.
+
+Search inside Settings points at a control too. As you type, it opens the page
+that holds the best match and outlines that switch, checkbox, button, or row: a
+word counts most where it starts a word of the control's label, less elsewhere
+in the label, and least in its help text, so `preview pa` finds **Preview
+pane**. A pause of about half a second spotlights the outlined control while
+the search keeps the keyboard; typing again lifts the dim, and the same control
+is not dimmed twice in one search. Enter moves keyboard focus to the outlined
+control and spotlights it, so Space toggles it next; Down still goes to the page
+list. Choosing another
+page while a search is open looks for a match only on that page.
 
 ### Typed URLs
 
 When a plain or `web:` search is one web address, the Web Search source offers
-**Open <url>** as an explicit Top Match, with **Copy URL** in its actions.
+**Open <url>** as an explicit Top Match, with **Copy URL** and **Save as Quicklink…** in its actions. Save as Quicklink opens Settings on Quicklinks with a new quicklink filled in: the address, and its host as the title. Add an alias or edit it there; the editor's own checks apply before it saves.
 Only `http://` and `https://` count. Text without a scheme gets `https://` and
 needs a port, a path, or a `www.` host: `github.com/devmobasa` and
 `localhost:8080` open, while `notes.md`, `1.5`, and `example.com` stay searches.
@@ -219,6 +266,9 @@ Assistant tools cannot invoke it.
 Clear arithmetic such as `100 * 5`, `100*5`, `2^10`, `(3+4)*2`, `10 / 4`,
 `1.5 * 3`, and `-2 + 7` shows a calculator row first. Normal results follow it.
 Press Enter to copy the answer. At least one operator must connect operands.
+Numbers can use thousands separators, such as `1,000 * 1.2`: one to three digits,
+then groups of exactly three. Inside a function call a comma separates
+arguments, so `max(100,200)` is `200`.
 Plain numbers, decimals, percentages, and version strings remain searches.
 Bare digit groups joined by `/` or `-` without spaces also remain searches:
 `+1-555-1234`, `555-1234`, `5/5`, `1/2`, `3/4`, `2026/09/11`, and `2026-09-11`.
@@ -546,6 +596,21 @@ Herdr rows. Status badges show working, idle, or needs attention; missing or
 unknown status does not imply an idle agent. Space details preview up to eight
 tabs with pane counts and reported status.
 
+`agents:` lists every agent Herdr knows about, one row per agent pane, across
+all spaces: blocked agents first, then working, done, idle, and unknown status.
+Each row names its tab, with the agent, its status, and its space in the
+subtitle, under an **Agents** heading; Enter switches to the agent's tab with
+the ordinary tab focus action. Text narrows the list by agent, tab, or space
+name without changing the urgency order, and a browsed space lists only its
+own agents. The rows come from `herdr agent list` together with the space and
+tab lists, under the same bounds; Herdr reports no timestamps, so rows show no
+elapsed time. A failed or malformed agent list shows no rows.
+
+In a browsed space, text that no tab is named exactly offers **Create tab
+"<text>"** after the matching tabs. It opens the same name dialog as **New tab in
+this space**, with the text filled in. A filter, a field or excluded clause, or a
+name Herdr would refuse offers nothing.
+
 Spaces offer **New tab in this space**; tabs offer **Rename tab**. The name
 dialog accepts up to 512 characters without control characters. The daemon
 binds names to cached result identities and passes them as literal CLI arguments.
@@ -631,3 +696,8 @@ release that registration before returning the connection to its pool. Ranked FT
 candidates and their displayed item rows use one read snapshot. Open With is
 resolved only for visible indexed files, with a 150 ms wait and two outstanding
 detections; runtime shutdown joins unfinished detection.
+
+Rows with a Hyprland key hint offer **Change Shortcut…**. Launchable rows without a key offer
+**Add Shortcut…** beside **Copy Hyprland Binding**. These actions open Settings → Shortcuts;
+**Alt+K** activates the same action for the selected row. Binding hints come from the cached
+Hyprland inventory; Settings reads the current inventory before a change and confirms conflicts.

@@ -100,7 +100,7 @@ public static partial class Program
             True( !row.CanCustomize, "a typed URL cannot be bookmarked, aliased, or hidden" );
             True( ResultPlacements.IsExplicit( row ) && !ResultPlacements.IsTrailing( row ) );
             True( !row.Metadata.ContainsKey( "exactAlias" ), "the row does not pose as an alias" );
-            Equal( "open|copy-url", string.Join( '|', row.Actions.Select( static action => action.Id ) ) );
+            Equal( "open|copy-url|save-quicklink", string.Join( '|', row.Actions.Select( static action => action.Id ) ) );
 
             // The open-url executor expands {query}; the typed address has none to expand.
             Equal( "open-url", row.Actions[0].Kind );
@@ -113,6 +113,12 @@ public static partial class Program
             Equal( "copy-text", row.Actions[1].Kind );
             Equal( "Copy URL", row.Actions[1].Title );
             Equal( TypedUrlAddress, TextActionPayload.Read( row.Actions[1].Arguments ).Text );
+
+            // Save as Quicklink opens the Quicklinks editor in Settings with the address.
+            Equal( "open-settings", row.Actions[2].Kind );
+            Equal( "Save as Quicklink…", row.Actions[2].Title );
+            Equal( SettingIds.Quicklinks, row.Actions[2].Arguments[ActionArgumentNames.SettingId] );
+            Equal( TypedUrlAddress, row.Actions[2].Arguments[ActionArgumentNames.Url] );
         }
 
         var engines = await WebSearchAt( )

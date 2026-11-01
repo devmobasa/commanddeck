@@ -46,5 +46,12 @@ public static partial class Program
         True( status.RuntimeStatus.Providers.Any( provider => provider.Id == "hyprland" ) );
         True( status.RuntimeStatus.Providers.Any( provider => provider is { Id: "herdr", State: "available" or "inactive" or "degraded" } ) );
         True( status.RuntimeStatus.Providers.Any( provider => provider is { Id: "ai", State: "disabled" } ) );
+
+        // Diagnostics: who answered, where, since when, and how searches have performed.
+        True( !string.IsNullOrWhiteSpace( status.RuntimeStatus.Version ) );
+        Equal( Environment.ProcessId, status.RuntimeStatus.ProcessId );
+        True( status.RuntimeStatus.StartedAt <= DateTimeOffset.Now );
+        True( status.RuntimeStatus.SocketPath?.EndsWith( ".sock", StringComparison.Ordinal ) == true );
+        True( status.RuntimeStatus.SearchTimings is not null );
     }
 }

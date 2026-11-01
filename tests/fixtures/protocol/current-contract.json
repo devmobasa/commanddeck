@@ -110,6 +110,13 @@
     "saved-search.get",
     "saved-search.save",
     "search",
+    "shortcut.export",
+    "shortcut.hotkey",
+    "shortcut.record.start",
+    "shortcut.record.stop",
+    "shortcut.reset-all",
+    "shortcut.restore",
+    "shortcut.set",
     "status",
     "suggest"
   ],
@@ -240,6 +247,7 @@
     "SelectAfterSave",
     "SelectedProject",
     "SessionId",
+    "Shortcut",
     "SourcePatch",
     "StableIds",
     "TargetFilterId",
@@ -498,6 +506,18 @@
       "kind": "tab"
     },
     {
+      "id": "herdr-agents",
+      "label": "Herdr agents",
+      "token": "agents:",
+      "aliases": [
+        "hagents:",
+        "herdr-agents:"
+      ],
+      "providerId": "herdr",
+      "sourceId": "herdr",
+      "kind": "tab"
+    },
+    {
       "id": "configuration",
       "label": "Configuration",
       "token": "cfg:",
@@ -653,7 +673,7 @@
     {
       "id": "omarchy-control",
       "label": "Omarchy Control",
-      "icon": "emblem-system",
+      "icon": "omarchy",
       "homeAvailable": true
     },
     {

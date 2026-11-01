@@ -4,6 +4,7 @@
 .import "DeckHiddenItemActions.js" as DeckHiddenItemActions
 
 function handleMessage(root, message) {
+  if (root.part_shortcutEditor && root.part_shortcutEditor.handleMessage(message)) return
   if (root.part_quicklinksController && root.part_quicklinksController.handleMessage(message)) return
   // The search streams the most replies, so it is asked first.
   if (root.part_searchSession.handleMessage(message)) return
@@ -94,6 +95,7 @@ function handleMessage(root, message) {
         && (!incoming.shortcuts || incoming.shortcuts.length === 0)) {
       incoming.shortcuts = root.preferencesSnapshot.shortcuts || []
     }
+    if (incoming && incoming.shortcutEditor && root.part_shortcutEditor) root.part_shortcutEditor.snapshot = incoming.shortcutEditor
     root.preferencesSnapshot = incoming
     if (incoming) {
       if (operation === Protocol.Operations.PreferencesUpdate) {
@@ -121,6 +123,7 @@ function handleMessage(root, message) {
         && (!incoming.shortcuts || incoming.shortcuts.length === 0)) {
       incoming.shortcuts = root.preferencesSnapshot.shortcuts || []
     }
+    if (incoming && incoming.shortcutEditor && root.part_shortcutEditor) root.part_shortcutEditor.snapshot = incoming.shortcutEditor
     root.preferencesSnapshot = incoming
     if (incoming) root.part_personalization.resetPreferences(incoming.preferences)
     if (root.reconciliationPending && incoming) {

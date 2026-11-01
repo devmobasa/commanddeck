@@ -9,6 +9,7 @@ Theme {
 
   loadShellTokens: false
   tokens: source.tokens
+  interfaceFont: source.interfaceFont
   displayScale: sizing.displayScale === undefined ? sizing.effective : sizing.displayScale
   densityScale: sizing.densityScale === undefined ? 1 : sizing.densityScale
   textScale: sizing.textScale

@@ -196,7 +196,7 @@ internal sealed partial class IncrementalIndexEngine
 
             if ( !Directory.Exists( path ) )
             {
-                MarkRootUnwatched( path, "Configured root does not exist." );
+                MarkRootUnwatched( path, MissingRootError );
 
                 continue;
             }
@@ -346,6 +346,10 @@ internal sealed partial class IncrementalIndexEngine
             set;
         }
 
+        // A configured folder that isn't there; the remedy is to stop
+        // indexing it or create it, not to look at watch limits.
+        public bool Missing => !Watched && LastError == MissingRootError;
+
         public int WatchedDirectoryCount
         {
             get;
@@ -390,6 +394,11 @@ internal sealed partial class IncrementalIndexEngine
                 return null;
             }
 
+            if ( Missing )
+            {
+                return MissingRootGuidance;
+            }
+
             return "Check the root path and inotify limits, then resume or reindex this root.";
         }
 
@@ -415,6 +424,7 @@ internal sealed partial class IncrementalIndexEngine
                 IndexedItemCount = IndexedItemCount,
                 LastSuccessAt = LastSuccessAt,
                 LastError = error,
+                Missing = Missing,
                 WatchedDirectoryCount = WatchedDirectoryCount,
                 UnwatchedDirectoryCount = UnwatchedDirectoryCount,
                 Remediation = GetRecoveryGuidance( partiallyWatched, error )

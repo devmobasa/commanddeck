@@ -57,9 +57,17 @@ sealed partial class GalleryCapture
         new( "themes", "themes.qml", 3, ["themes.png"] ),
         new( "demo", "demo.qml", 2, ["demo.gif", "demo.mp4"] ),
         new( "whats-new", "whats-new.qml", 2, ["whats-new.gif", "whats-new.mp4"] ),
+        new( "herdr-tour", "herdr-tour.qml", 2, ["herdr-tour.gif", "herdr-tour.mp4"] ),
+        new( "herdr-jump", "herdr-jump.qml", 2, ["herdr-jump.gif", "herdr-jump.mp4"] ),
         new( "settings", "settings.qml", 3,
-            ["settings-display.png", "settings-layout.png", "settings-search.png", "settings-folders.png", "settings-quicklinks.png", "settings-quicklink-edit.png"] ),
+            ["settings-display.png", "settings-layout.png", "settings-search.png", "settings-folders.png", "settings-quicklinks.png", "settings-quicklink-edit.png", "settings-shortcuts-recording.png", "settings-shortcuts-conflict.png", "settings-shortcuts-changed.png", "settings-shortcuts-readonly.png", "settings-shortcuts-menu.png"] ),
         new( "social", "social.qml", 2, ["social-preview.png"] ),
+        new( "showcase-shortcuts-chapters", "showcase.qml", 1, ["showcase-shortcuts-chapters.gif", "showcase-shortcuts-chapters.mp4"] ),
+        new( "showcase-shortcuts-captions", "showcase.qml", 1, ["showcase-shortcuts-captions.gif", "showcase-shortcuts-captions.mp4"] ),
+        new( "showcase-settings-search-chapters", "showcase.qml", 1, ["showcase-settings-search-chapters.gif", "showcase-settings-search-chapters.mp4"] ),
+        new( "showcase-settings-search-captions", "showcase.qml", 1, ["showcase-settings-search-captions.gif", "showcase-settings-search-captions.mp4"] ),
+        new( "showcase-new-look-chapters", "showcase.qml", 1, ["showcase-new-look-chapters.gif", "showcase-new-look-chapters.mp4"] ),
+        new( "showcase-new-look-captions", "showcase.qml", 1, ["showcase-new-look-captions.gif", "showcase-new-look-captions.mp4"] ),
         new( "sizing", "sizing.qml", 1, ["launcher.png", "settings.png", "layout.png", "help.png", "actions.png", "confirmation.png", "extension.png"] )
     ];
 
@@ -127,7 +135,7 @@ sealed partial class GalleryCapture
 
         Directory.CreateDirectory( _output );
 
-        foreach ( var scene in selected.Count > 0 ? selected : [.. Scenes.Where( value => value.Name != "sizing" )] )
+        foreach ( var scene in selected.Count > 0 ? selected : [.. Scenes.Where( value => value.Name != "sizing" && !value.Name.StartsWith( "showcase-", StringComparison.Ordinal ) )] )
         {
             await CaptureAsync( scene );
         }
@@ -138,7 +146,15 @@ sealed partial class GalleryCapture
     private async Task CaptureAsync( Scene scene )
     {
         Console.WriteLine( $"Rendering {scene.Name}" );
-        var frames = Directory.CreateTempSubdirectory( "commanddeck-gallery-frames-" ).FullName;
+        var showcase = scene.Name.StartsWith( "showcase-", StringComparison.Ordinal );
+        var frames = showcase ? Path.Combine( _output, scene.Name + "-frames" )
+            : Directory.CreateTempSubdirectory( "commanddeck-gallery-frames-" ).FullName;
+        if ( showcase && Directory.Exists( frames ) )
+        {
+            Directory.Delete( frames, recursive: true );
+        }
+
+        Directory.CreateDirectory( frames );
 
         try
         {
@@ -153,8 +169,11 @@ sealed partial class GalleryCapture
                     await FfmpegAsync( CollageArguments( frames, "themes.png" ) );
 
                     break;
+                case var name when name.StartsWith( "showcase-", StringComparison.Ordinal ):
                 case "demo":
                 case "whats-new":
+                case "herdr-tour":
+                case "herdr-jump":
                     await RenderAsync( scene, frames, theme: null );
                     await EncodeAnimationAsync( frames, scene.Name );
 
@@ -175,7 +194,10 @@ sealed partial class GalleryCapture
         }
         finally
         {
-            Directory.Delete( frames, recursive: true );
+            if ( !showcase )
+            {
+                Directory.Delete( frames, recursive: true );
+            }
         }
     }
 
@@ -199,6 +221,8 @@ sealed partial class GalleryCapture
                 .GetValueOrDefault( "dpr", scene.Scale )
                 .ToString( CultureInfo.InvariantCulture );
 
+            start.Environment["COMMANDDECK_GALLERY_SCENE"] = scene.Name;
+
             start.Environment["COMMANDDECK_GALLERY_SIZING"] = JsonSerializer.Serialize( _sizing );
             start.Environment["COMMANDDECK_SCREENSHOT_OUTPUT"] = output;
 
@@ -214,7 +238,7 @@ sealed partial class GalleryCapture
                 start.Environment["COMMANDDECK_GALLERY_THEME"] = palette.ToJsonString( );
             }
 
-            await RunAsync( start, scene.Name is "demo" or "whats-new" ? TimeSpan.FromMinutes( 3 ) : TimeSpan.FromSeconds( 60 ) );
+            await RunAsync( start, scene.Name is "demo" or "whats-new" or "herdr-tour" or "herdr-jump" ? TimeSpan.FromMinutes( 3 ) : TimeSpan.FromSeconds( 60 ) );
         }
         finally
         {
@@ -404,13 +428,21 @@ sealed partial class GalleryCapture
         await File.WriteAllTextAsync( manifest, list.ToString( ) );
         var length = duration.ToString( "0.###", CultureInfo.InvariantCulture );
 
-        await FfmpegAsync( ["-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", manifest, "-fps_mode", "vfr",
-            "-vf", "scale=1280:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=96:stats_mode=full[p];[s1][p]paletteuse=dither=none",
+        // Two passes avoid buffering every full-size frame while computing the palette.
+        var palette = Path.Combine( frames, "palette.png" );
+        await FfmpegAsync( ["-y", "-loglevel", "error", "-threads", "1", "-filter_threads", "1",
+            "-f", "concat", "-safe", "0", "-i", manifest,
+            "-vf", "scale=1280:-1:flags=lanczos,palettegen=max_colors=96:stats_mode=full",
+            "-frames:v", "1", "-update", "1", palette] );
+        await FfmpegAsync( ["-y", "-loglevel", "error", "-threads", "1", "-filter_complex_threads", "1",
+            "-f", "concat", "-safe", "0", "-i", manifest, "-i", palette, "-fps_mode", "vfr",
+            "-lavfi", "[0:v]scale=1280:-1:flags=lanczos[s];[s][1:v]paletteuse=dither=none",
             "-t", length, "-final_delay", finalDelay.ToString( CultureInfo.InvariantCulture ),
             "-loop", "0", Path.Combine( _output, name + ".gif" )] );
 
-        await FfmpegAsync( ["-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", manifest,
-            "-vf", "fps=30,scale=1920:-2:flags=lanczos", "-c:v", "libx264", "-preset", "slow", "-crf", "22",
+        await FfmpegAsync( ["-y", "-loglevel", "error", "-threads", "1", "-filter_threads", "1",
+            "-f", "concat", "-safe", "0", "-i", manifest,
+            "-vf", "fps=30,scale=1920:-2:flags=lanczos", "-c:v", "libx264", "-threads", "2", "-preset", "slow", "-crf", "22",
             "-t", length, "-pix_fmt", "yuv420p", "-movflags", "+faststart", Path.Combine( _output, name + ".mp4" )] );
     }
 

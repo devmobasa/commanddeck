@@ -119,7 +119,7 @@ public sealed partial class CommandDeckRuntime
                 var extensionSearch = new ExtensionSearchService( extensions, new ExtensionSearchWorker( extensions, extensionLauncher ) );
 
                 resources.Own( extensionSearch );
-                HerdrClient herdr = new( );
+                HerdrClient herdr = new( log: AppLog.Warning );
                 HeyClient hey = new( );
 
                 // Settings can turn the menu state on or off at run time.
@@ -150,6 +150,7 @@ public sealed partial class CommandDeckRuntime
                     new WebSearchProvider( options.Search.WebEngines ),
                     new EmojiProvider( ),
                     new DesktopControlsProvider( ),
+                    new SettingsProvider( ),
                     new RunCommandProvider( ),
                     new ProcessProvider( )
                 ];
@@ -197,6 +198,7 @@ public sealed partial class CommandDeckRuntime
                 runtime._extensionSearch = extensionSearch;
                 runtime._extensionConnections = extensionConnections;
                 runtime._herdr = herdr;
+                runtime._keybindings = new KeybindingHints( );
                 runtime._exchangeRates = rates;
 
                 runtime._extensionSessions = new ExtensionSessionService( extensions, extensionLauncher, actions, extensionDevelopment, extensionConnections );

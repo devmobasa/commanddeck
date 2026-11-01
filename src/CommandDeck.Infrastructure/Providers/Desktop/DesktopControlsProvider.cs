@@ -21,11 +21,14 @@ public sealed partial class DesktopControlsProvider : ICommandProvider
 
     private readonly Func<string, bool> _toolAvailable;
     private readonly ExternalProcessRunner _hyprland;
+    private readonly ExternalProcessRunner _stateProbe;
 
-    public DesktopControlsProvider( Func<string, bool>? toolAvailable = null, ExternalProcessRunner? hyprlandRunner = null )
+    public DesktopControlsProvider( Func<string, bool>? toolAvailable = null, ExternalProcessRunner? hyprlandRunner = null,
+        ExternalProcessRunner? stateRunner = null )
     {
         _toolAvailable = toolAvailable ?? ProcessRunner.ExistsOnPath;
-        _hyprland = hyprlandRunner ?? DefaultHyprlandRunAsync;
+        _hyprland = hyprlandRunner ?? DefaultRunAsync;
+        _stateProbe = stateRunner ?? DefaultRunAsync;
     }
 
     public string Id => ProviderIds.DesktopControls;
@@ -46,19 +49,33 @@ public sealed partial class DesktopControlsProvider : ICommandProvider
         Dictionary<string, bool> tools = new( StringComparer.Ordinal );
         List<SearchResult> results = [];
 
+        List<(DesktopControl Control, double Score)> matches = [];
         foreach ( var control in DesktopControlCatalog.System )
         {
-            var score = Score( text, control.Title, control.Keywords );
+            var score = Score( text, control.Title, control.SearchKeywords );
             if ( score > 0 && control.RequiredTools.All( tool => GetOrCacheToolAvailability( tool, tools ) ) )
             {
-                results.Add( BuildRow( control, score ) );
+                matches.Add( (control, score) );
             }
         }
 
-        AddColorPickerRow( text, tools, results );
+        // State probes run while the window rows read Hyprland.
+        var statesTask = ReadStatesAsync( matches.Select( static match => match.Control ), cancellationToken )
+            .AsTask( );
 
-        await AddWindowRowsAsync( text, tools, results, cancellationToken )
+        List<SearchResult> others = [];
+        AddColorPickerRow( text, tools, others );
+
+        await AddWindowRowsAsync( text, tools, others, cancellationToken )
             .ConfigureAwait( false );
+
+        var states = await statesTask.ConfigureAwait( false );
+        foreach ( (var control, var score) in matches )
+        {
+            results.Add( BuildRow( control, score, states.GetValueOrDefault( control.Id ) ) );
+        }
+
+        results.AddRange( others );
 
         return results;
     }
@@ -124,16 +141,59 @@ public sealed partial class DesktopControlsProvider : ICommandProvider
         results.Add( CreatePickerResult( picker, score, missing ) );
     }
 
-    private static SearchResult BuildRow( DesktopControl control, double score )
+    // Each probe runs once per search, in parallel; two radios share rfkill's
+    // listing. Only matched toggles are probed, so other searches start nothing.
+    private async ValueTask<Dictionary<string, bool?>> ReadStatesAsync( IEnumerable<DesktopControl> controls, CancellationToken cancellationToken )
+    {
+        var toggles = controls
+            .Where( static control => control.State is not null )
+            .ToArray( );
+
+        if ( toggles.Length == 0 )
+        {
+            return [];
+        }
+
+        var probes = toggles
+            .Select( static control => control.State! )
+            .DistinctBy( static state => state.ProbeKey )
+            .ToDictionary( static state => state.ProbeKey, state => ProbeAsync( state.ProbeArgv, cancellationToken ), StringComparer.Ordinal );
+
+        await Task
+            .WhenAll( probes.Values )
+            .ConfigureAwait( false );
+
+        return toggles.ToDictionary( static control => control.Id,
+            control => probes[control.State!.ProbeKey].Result is { } output ? control.State.ReadIsOn( output ) : null, StringComparer.Ordinal );
+    }
+
+    private async Task<string?> ProbeAsync( IReadOnlyList<string> argv, CancellationToken cancellationToken )
+    {
+        try
+        {
+            var result = await _stateProbe( argv[0], argv.Skip( 1 ).ToArray( ), HyprctlTimeout, cancellationToken )
+                .ConfigureAwait( false );
+
+            return GetSuccessfulOutput( result );
+        }
+        catch ( Exception exception ) when ( exception is IOException or InvalidOperationException )
+        {
+            return null;
+        }
+    }
+
+    private static SearchResult BuildRow( DesktopControl control, double score, bool? isOn = null )
     {
         var command = string.Join( ' ', control.Argv );
+        var title = control.State is { } state && isOn is { } on ? state.Title( on ) : control.Title;
+        var subtitle = control.State is { } described && isOn is { } current ? described.Describe( current ) : control.Tool;
 
         return new SearchResult
         {
             Id = DesktopControlResultIds.For( control.Id ),
             Kind = ResultKinds.CustomCommand,
-            Title = control.Title,
-            Subtitle = $"{control.Category} · {control.Tool}",
+            Title = title,
+            Subtitle = $"{control.Category} · {subtitle}",
             Icon = control.Icon,
             ProviderId = ProviderIds.DesktopControls,
             SourceId = SourceIds.DesktopControls,
@@ -148,7 +208,7 @@ public sealed partial class DesktopControlsProvider : ICommandProvider
                 new CommandAction
                 {
                     Id = RunActionId,
-                    Title = control.Title,
+                    Title = title,
                     Kind = ActionKinds.RunArgv,
                     CloseAfterAction = control.CloseAfterAction,
                     Arguments = new Dictionary<string, string>( StringComparer.Ordinal ) { [ActionArgumentNames.Argv] = string.Join( '\u001f', control.Argv ) }

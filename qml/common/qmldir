@@ -90,6 +90,7 @@ InvocationController 1.0 Actions/InvocationController.qml
 KeyCap 1.0 Controls/KeyCap.qml
 KeyboardButton 1.0 KeyboardButton.qml
 LauncherBehaviorStore 1.0 Launcher/LauncherBehaviorStore.qml
+LargeTypeSurface 1.0 Launcher/LargeTypeSurface.qml
 LauncherHud 1.0 Launcher/LauncherHud.qml
 LauncherLifecycleController 1.0 Launcher/LauncherLifecycleController.qml
 LauncherProtocolController 1.0 Launcher/LauncherProtocolController.qml
@@ -134,6 +135,7 @@ SettingsChoice 1.0 Settings/Controls/SettingsChoice.qml
 SettingsColorRow 1.0 Settings/Controls/SettingsColorRow.qml
 SettingsColorsCard 1.0 Settings/Pages/SettingsColorsCard.qml
 SettingsCustomizationPage 1.0 Settings/Pages/SettingsCustomizationPage.qml
+SettingsDiagnosticsPage 1.0 Settings/Pages/SettingsDiagnosticsPage.qml
 SettingsEditorsPage 1.0 Settings/Pages/SettingsEditorsPage.qml
 SettingsField 1.0 Settings/Controls/SettingsField.qml
 SettingsFiltersPage 1.0 Settings/Pages/SettingsFiltersPage.qml
@@ -150,12 +152,17 @@ SettingsSearchPage 1.0 Settings/Pages/SettingsSearchPage.qml
 SettingsIndexRootsCard 1.0 Settings/Pages/SettingsIndexRootsCard.qml
 SettingsShortcutsPage 1.0 Settings/Pages/SettingsShortcutsPage.qml
 SettingsSlider 1.0 Settings/Controls/SettingsSlider.qml
+SettingsSearchFocus 1.0 Settings/SettingsSearchFocus.qml
 SettingsSourceList 1.0 Settings/Controls/SettingsSourceList.qml
+SettingsSpotlight 1.0 Settings/SettingsSpotlight.qml
 SettingsTextArea 1.0 Settings/Controls/SettingsTextArea.qml
 SettingsToggle 1.0 Settings/Controls/SettingsToggle.qml
 SizingViewport 1.0 Display/SizingViewport.qml
 SourcePreferenceRow 1.0 Settings/Controls/SourcePreferenceRow.qml
 Theme 1.0 Theme.qml
+InterfaceFontStore 1.0 Display/InterfaceFontStore.qml
+SettingsSegmented 1.0 Settings/Controls/SettingsSegmented.qml
+SettingsSymbol 1.0 Settings/Controls/SettingsSymbol.qml
 ThemedToolTip 1.0 Controls/ThemedToolTip.qml
 TransparencyStore 1.0 Display/TransparencyStore.qml
 WindowPreview 1.0 Desktop/WindowPreview.qml
@@ -168,3 +175,6 @@ WorkspacePreviewModel 1.0 Workspace/WorkspacePreviewModel.qml
 WorkspaceSnapshotCell 1.0 Workspace/WorkspaceSnapshotCell.qml
 WorkspaceSnapshotGrid 1.0 Workspace/WorkspaceSnapshotGrid.qml
 WorkspaceSnapshotLifecycle 1.0 Workspace/WorkspaceSnapshotLifecycle.qml
+SettingsShortcutPill 1.0 Settings/Controls/SettingsShortcutPill.qml
+SettingsShortcutRow 1.0 Settings/Controls/SettingsShortcutRow.qml
+ShortcutEditorController 1.0 Settings/ShortcutEditorController.qml

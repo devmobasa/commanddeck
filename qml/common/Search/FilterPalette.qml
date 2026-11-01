@@ -217,7 +217,7 @@ Rectangle {
               textFormat: Text.PlainText
               text: String(entryRow.modelData.token)
               color: root.theme.accent
-              font.family: "monospace"
+              font.family: root.theme.monoFontFamily
               font.pixelSize: root.theme.fontBody
               elide: Text.ElideRight
             }
@@ -236,7 +236,7 @@ Rectangle {
               textFormat: Text.PlainText
               text: entryRow.exampleText
               color: root.theme.textMuted
-              font.family: "monospace"
+              font.family: root.theme.monoFontFamily
               font.pixelSize: root.theme.fontSmall
               elide: Text.ElideRight
             }

@@ -72,6 +72,7 @@ namespace CommandDeck;
 [JsonSerializable( typeof( Dictionary<string, string> ) )]
 [JsonSerializable( typeof( string[] ) )]
 [JsonSerializable( typeof( List<string> ) )]
+[JsonSerializable( typeof( List<ShortcutOverride> ) )]
 [JsonSerializable( typeof( ProtocolRequest ) )]
 [JsonSerializable( typeof( ProtocolMessage ) )]
 [JsonSerializable( typeof( CatalogStats ) )]

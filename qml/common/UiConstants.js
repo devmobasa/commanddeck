@@ -18,7 +18,7 @@ var DisplaySizePercent = Object.freeze({ ZoomStep: 10, Default: 100 });
 var AiHubSection = Object.freeze({ Assistant: "assistant", QuickAnswers: "quick" });
 var SettingsPage = Object.freeze({
   Search: "search", Assistant: "assistant", Editors: "editors", Filters: "filters",
-  Ai: "ai", Shortcuts: "shortcuts", Customization: "customization"
+  Ai: "ai", Shortcuts: "shortcuts", Customization: "customization", Diagnostics: "diagnostics"
 });
 var ClipboardDialogPurpose = Object.freeze({
   Keywords: "keywords", Clear: "clear", Open: "open", Enable: "enable", Migration: "migration"

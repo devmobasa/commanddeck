@@ -180,6 +180,36 @@ public static partial class Program
         Equal( 0, hyprctl.Requests.Count );
     }
 
+    private static async Task WindowTogglesAreNamedForTheFocusedWindowAsync( )
+    {
+        HyprctlFake hyprctl = new( );
+        DesktopControlsProvider provider = new( static tool => tool == "hyprctl", hyprctl.RunAsync );
+        SearchCoordinator search = new( [provider], new SearchOptions( ) );
+
+        async Task<IReadOnlyList<SearchResult>> FindAsync( string query ) =>
+            await search.SearchAsync( new SearchRequest { Query = query, Limit = 50 }, default );
+
+        static string? TitleOf( IReadOnlyList<SearchResult> rows, string id ) =>
+            rows.SingleOrDefault( row => row.Id == id )?.Title;
+
+        // The default window is tiled and not fullscreen.
+        Equal( "Float Window", TitleOf( await FindAsync( "float window" ), "desktop:window-toggle-floating" ) );
+        var enter = (await FindAsync( "enter fullscreen" )).Single( static row => row.Id == "desktop:window-toggle-fullscreen" );
+        Equal( "Enter Fullscreen", enter.Title );
+        Equal( "Enter Fullscreen", enter.Actions.Single( ).Title );
+
+        // A floating window keeps only Tile Window; a fullscreen one offers to exit.
+        hyprctl.ActiveWindow = """{"address":"0xdef","monitor":0,"floating":true,"fullscreen":2,"size":[640,480],"class":"mpv","title":"video"}""";
+        var rows = await FindAsync( "window" );
+        True( TitleOf( rows, "desktop:window-toggle-floating" ) is null );
+        Equal( "Tile Window", TitleOf( rows, "desktop:window-tile" ) );
+        Equal( "Exit Fullscreen", TitleOf( await FindAsync( "exit fullscreen" ), "desktop:window-toggle-fullscreen" ) );
+
+        // Maximized is not fullscreen.
+        hyprctl.ActiveWindow = """{"address":"0xdef","monitor":0,"floating":false,"fullscreen":1,"size":[640,480],"class":"mpv","title":"video"}""";
+        Equal( "Enter Fullscreen", TitleOf( await FindAsync( "fullscreen" ), "desktop:window-toggle-fullscreen" ) );
+    }
+
     private static async Task WindowCommandsDispatchToTheBoundAddressAsync( )
     {
         HyprctlFake hyprctl = new( );

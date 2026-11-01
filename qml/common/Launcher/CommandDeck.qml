@@ -14,6 +14,7 @@ import "../Workspace/WorkspaceResultOrder.js" as WorkspaceResultOrder
 import QtQuick
 import "../UiConstants.js" as Ui
 import "../Protocol.js" as Protocol
+import "LargeType.js" as LargeType
 import Quickshell
 
 CommandDeckState {
@@ -29,6 +30,7 @@ CommandDeckState {
   readonly property alias part_aiController: aiController
   readonly property alias part_rows: resultRows
   readonly property alias part_quicklinksController: quicklinksController
+  readonly property alias part_shortcutEditor: shortcutEditor
   readonly property alias part_personalization: personalization
   readonly property alias part_agentController: agentController
   readonly property alias part_aiFeaturesStore: aiFeaturesStore
@@ -101,6 +103,7 @@ CommandDeckState {
   function applyCompactLayout(enabled) { return DeckDisplayActions.applyCompactLayout(root, enabled) }
   function applyPreviewPane(visible) { return DeckDisplayActions.applyPreviewPane(root, visible) }
   function togglePreviewPane() { return DeckDisplayActions.togglePreviewPane(root) }
+  function applyInterfaceFont(choice) { displayPreferences.interfaceFontStore.set(choice) }
   function applyLauncherBehavior(escapeClears, keepSeconds) { return part_behaviorStore.set(escapeClears, keepSeconds) }
   function backToRoot() { return DeckSearchActions.backToRoot(root) }
   function applyPanelTransparency(enabled, percent) { return DeckDisplayActions.applyPanelTransparency(root, enabled, percent) }
@@ -114,7 +117,12 @@ CommandDeckState {
   readonly property bool calculatorOnly: resultRows.count === 2
     && currentResult !== null && currentResult.kind === Protocol.ResultKinds.Calculator
   // Any surface drawn over the content area; the coach must never cover one.
-  readonly property bool anyBlockingSurface: settingsOpen || helpOpen || agentOpen
+  // What Ctrl+L shows across the screen; empty while it is closed.
+  property string largeTypeText: ""
+  // A file row is being dragged into another app.
+  property bool draggingOut: false
+  function openLargeType(text) { root.largeTypeText = LargeType.textFor(text, root.currentResult) }
+  readonly property bool anyBlockingSurface: settingsOpen || helpOpen || agentOpen || largeTypeText.length > 0
     || clipboardController.opened
     || part_invocationController.actionInputOpen || actionPanelOpen || aliasDialogOpen || confirmationOpen || detailDialogRequested
     || queryHistoryOpen || indexInspectorOpen || filterPaletteOpen
@@ -368,6 +376,7 @@ CommandDeckState {
   function applySavedSearch(search) { return DeckSearchActions.applySavedSearch(root, search) }
   function requestRuntimeStatus() { return DeckSearchActions.requestRuntimeStatus(root) }
   function invokeSelectedPrimary() { return DeckInvocationActions.invokeSelectedPrimary(root) }
+  function invokeSelectedNewWindow() { return DeckInvocationActions.invokeSelectedNewWindow(root) }
   function selectFile(result, enabled) { return DeckInvocationActions.selectFile(root, result, enabled) }
   function clearFileSelection() { return DeckInvocationActions.clearFileSelection(root) }
   function runFileSelection(actionId) { return DeckInvocationActions.runFileSelection(root, actionId) }
@@ -390,6 +399,33 @@ CommandDeckState {
     }
   }
 
+  TextEdit { id: shortcutClipboard; visible: false }
+  ShortcutEditorController {
+    id: shortcutEditor
+    nextRequestId: () => ++root.requestSequence
+    onRequest: value => root.part_protocol.send(value)
+    onSnapshotReceived: value => {
+      root.preferencesSnapshot = value
+      root.refreshSettingsSnapshot()
+      root.part_searchSession.refresh()
+    }
+    onCopyRequested: text => {
+      shortcutClipboard.text = text
+      shortcutClipboard.selectAll()
+      shortcutClipboard.copy()
+      shortcutClipboard.text = ""
+    }
+  }
+  Connections {
+    target: root
+    function onSettingsOpenChanged() { if (!root.settingsOpen) shortcutEditor.cancelRecording() }
+    function onOpenedChanged() {
+      // A row destroyed mid-drag never reports its end; nothing may outlive a close.
+      root.largeTypeText = ""
+      root.draggingOut = false
+      if (!root.opened) shortcutEditor.cancelRecording()
+    }
+  }
   PersonalizationController {
     id: personalization
     nextRequestId: function() { return ++root.requestSequence }
@@ -423,6 +459,7 @@ CommandDeckState {
     reduceMotion: root.launcherPreferences
       ? root.launcherPreferences.reduceMotion === true
       : false
+    interfaceFont: root.interfaceFont
     panelTransparencyEnabled: root.panelTransparencyEnabled
     panelTransparency: root.panelTransparencyPercent / 100
     tokenSource: root.themeTokenSource
@@ -458,6 +495,7 @@ CommandDeckState {
     onRootRequested: root.backToRoot()
     escapeClearsQuery: root.escapeClearsSearch
     onPrimaryRequested: root.invokeSelectedPrimary()
+    onNewWindowRequested: root.invokeSelectedNewWindow()
     onSelectionIdentityChanged: result => root.requestPreview(result)
   }
 

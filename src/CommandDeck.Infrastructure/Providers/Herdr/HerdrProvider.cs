@@ -44,6 +44,14 @@ public sealed partial class HerdrProvider( HerdrClient client ) : ICommandProvid
             return [];
         }
 
+        if ( query.IncludedFilters.Any( static filter => filter.Id == HerdrSearch.AgentsFilterId ) )
+        {
+            return request.HerdrWorkspaceId is null || HerdrClient.IsValidIdentifier( request.HerdrWorkspaceId )
+                ? await SearchAgentsAsync( query, request, cancellationToken )
+                    .ConfigureAwait( false )
+                : [];
+        }
+
         (var includeSpaces, var includeTabs) = IncludedKinds( query );
 
         if ( request.HerdrWorkspaceId is not null )
@@ -83,8 +91,9 @@ public sealed partial class HerdrProvider( HerdrClient client ) : ICommandProvid
         }
 
         var results = Project( inventory, query, includeSpaces, includeTabs, request.HerdrWorkspaceId );
+        var ordered = OrderSearchResults( request, results );
 
-        return OrderSearchResults( request, results );
+        return CreateTabOffer( inventory, query, request.HerdrWorkspaceId ) is { } offer ? [.. ordered, offer] : ordered;
     }
 
     private static (bool Spaces, bool Tabs) IncludedKinds( ParsedQuery query )
@@ -102,7 +111,7 @@ public sealed partial class HerdrProvider( HerdrClient client ) : ICommandProvid
         var tabs = IncludesTabs( herdrIncluded );
 
         foreach ( var filter in query.ExcludedFilters.Where( static filter =>
-                     filter.SourceId == SourceIds.Herdr && filter.Id != HerdrSearch.AttentionFilterId ) )
+                     filter.SourceId == SourceIds.Herdr && filter.Id is not (HerdrSearch.AttentionFilterId or HerdrSearch.AgentsFilterId) ) )
         {
             spaces &= filter.Kind is not null and not ResultKinds.Workspace;
             tabs &= filter.Kind is not null and not ResultKinds.Tab;

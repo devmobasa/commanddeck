@@ -257,9 +257,7 @@ Rectangle {
               Layout.alignment: Qt.AlignTop
               text: detailRow.modelData.value || ""
               color: root.theme.textMuted
-              font.family: detailRow.modelData.monospace
-                ? "monospace"
-                : root.theme.fontFamily
+              font.family: root.theme.monoFontFamily
               font.pixelSize: root.theme.fontBody
               wrapMode: Text.WrapAnywhere
               textFormat: Text.PlainText

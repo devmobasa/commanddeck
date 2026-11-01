@@ -1,6 +1,7 @@
 import QtQuick
 import "UiConstants.js" as Ui
 import "ColorThemeFormat.js" as Format
+import "InterfaceFonts.js" as InterfaceFonts
 
 // Resolved design tokens for the overlay.
 //
@@ -94,6 +95,13 @@ QtObject {
     ? root.colorTokens.selectedBorder
     : root.withAlpha(root.deckText, 0.14)
   readonly property color accent: root.colorTokens ? root.colorTokens.accent : root.deckAccent
+  // Choose the more readable foreground using WCAG relative luminance.
+  readonly property color accentText: {
+    const dark = Qt.rgba(16 / 255, 19 / 255, 26 / 255, 1)
+    const light = Qt.rgba(1, 1, 1, 1)
+    return Format.colorContrast(root.accent, dark) >= Format.colorContrast(root.accent, light)
+      ? dark : light
+  }
   // Keyboard focus rings and outlines: the accent, unless it is too close to
   // the background to see, then the text colour.
   readonly property color focusRing: Format.focusColor(root.accent, root.text, root.background)
@@ -137,11 +145,11 @@ QtObject {
 
   // Layout metrics follow the theme's font scale, so raising [font] base-size
   // in shell.toml grows the palette instead of clipping it.
-  readonly property int rowHeight: Math.round(46 * root.scale)
+  readonly property int rowHeight: Math.round(42 * root.scale)
   readonly property int compactRowHeight: Math.round(38 * root.scale)
   readonly property int compactIconSize: Math.round(26 * root.scale)
   readonly property int rowGap: Math.max(1, Math.round(2 * root.scale))
-  readonly property int iconSize: Math.round(30 * root.scale)
+  readonly property int iconSize: Math.round(28 * root.scale)
   readonly property int iconGap: Math.round(11 * root.scale)
   readonly property int inputHeight: Math.round(46 * root.scale)
   readonly property int actionRowHeight: Math.round(36 * root.scale)
@@ -151,9 +159,12 @@ QtObject {
   readonly property int durationNormal: root.reduceMotion ? 0 : 140
   readonly property int highlightMoveDuration: root.reduceMotion ? 0 : 80
 
-  readonly property string fontFamily: root.tokens
-    ? root.tokens.fontFamily
-    : "monospace"
+  property string interfaceFont: "sans"
+  readonly property string monoFontFamily: root.tokens && root.tokens.fontFamily
+    ? root.tokens.fontFamily : "monospace"
+  readonly property string uiFontFamily: root.interfaceFont === "shell"
+    ? root.monoFontFamily : InterfaceFonts.sansFamily()
+  readonly property string fontFamily: root.uiFontFamily
   // Omarchy font tokens already include the shell font scale; apply zoom and
   // fitting exactly once, retaining integer logical font sizes.
   readonly property int fontCaption: Math.round(

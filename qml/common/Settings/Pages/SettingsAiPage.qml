@@ -32,15 +32,15 @@ ScrollView {
 
   ColumnLayout {
     width: aiScroll.availableWidth
-    spacing: Math.round(14 * aiScroll.host.theme.scale)
+    spacing: Math.round(22 * aiScroll.host.theme.scale)
 
     SettingsCard {
       id: aiManagementCard
       visible: matchesSearch && aiScroll.host.aiFeaturesEnabled
       searchQuery: aiScroll.host.part_settingsSearch.text
-      searchTerms: "ai providers direct enable ollama openai grok xai endpoint api key credential model provider add edit remove test"
+      settingId: Protocol.SettingIds.QuickAnswerProviders
       theme: aiScroll.host.theme
-      title: "Quick answer providers"
+      title: "Providers"
       description: "Ollama and OpenAI-compatible endpoints for one-question answers. Each request has a review step. Credentials are referenced by name, never stored here."
 
       SettingsToggle {
@@ -96,8 +96,8 @@ ScrollView {
                 + (providerRow.modelData.enabled === false ? "  (disabled)" : "")
               color: providerRow.modelData.enabled === false ? aiScroll.host.theme.textMuted : aiScroll.host.theme.text
               font.family: aiScroll.host.theme.fontFamily
-              font.pixelSize: Math.round(aiScroll.host.theme.fontBody * 1.1)
-              font.weight: Font.Medium
+              font.pixelSize: aiScroll.host.theme.fontBody
+              font.weight: Font.Normal
               elide: Text.ElideRight
             }
 
@@ -176,7 +176,7 @@ ScrollView {
       id: aiProvidersCard
       visible: matchesSearch && aiScroll.host.aiFeaturesEnabled
       searchQuery: aiScroll.host.part_settingsSearch.text
-      searchTerms: "ai providers model refresh selection save selected active"
+      settingId: Protocol.SettingIds.QuickAnswerSelection
       theme: aiScroll.host.theme
       title: "Selected provider and model"
       description: "Which of the providers above answers ai: questions and the Explain, Summarize, and Propose Text actions. Refresh lists models from that provider only when you ask; Save stores the pair."
@@ -270,7 +270,7 @@ ScrollView {
       id: templatesCard
       visible: matchesSearch && aiScroll.host.aiFeaturesEnabled
       searchQuery: aiScroll.host.part_settingsSearch.text
-      searchTerms: "ai providers prompt templates system user input new edit delete"
+      settingId: Protocol.SettingIds.PromptTemplates
       theme: aiScroll.host.theme
       title: "Prompt templates"
       description: "Reusable prompts for the direct providers. The user template must contain {{input}}."
@@ -292,8 +292,8 @@ ScrollView {
             color: aiScroll.host.theme.text
             elide: Text.ElideRight
             font.family: aiScroll.host.theme.fontFamily
-            font.pixelSize: Math.round(aiScroll.host.theme.fontBody * 1.1)
-            font.weight: Font.Medium
+            font.pixelSize: aiScroll.host.theme.fontBody
+            font.weight: Font.Normal
             Accessible.name: "AI template " + templateRow.modelData.name
           }
           DeckButton {

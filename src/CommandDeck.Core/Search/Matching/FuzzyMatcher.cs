@@ -37,8 +37,6 @@ public static partial class FuzzyMatcher
     private const double QueryLengthScale = 2.8;
     private const double CandidateLengthScale = 0.25;
 
-    private const int MaximumTypoTokenCharacters = 48;
-
     public static double Score( string query, string candidate ) =>
         Evaluate( query, candidate, includeRanges: false ).Score;
 

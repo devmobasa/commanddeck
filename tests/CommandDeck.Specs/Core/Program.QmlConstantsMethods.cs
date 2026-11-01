@@ -29,7 +29,7 @@ public static partial class Program
         typeof( PngFormat ), typeof( FileExtensions ), typeof( AiOutputActions ), typeof( CommandDeckIdentity ),
         typeof( WorkspacePreviewModes ), typeof( WorkspaceIdentityKinds ), typeof( DisplaySizingPersistence ),
         typeof( AgentQueryPrefixes ), typeof( AgentResultIds ),
-        typeof( ActionArgumentNames ), typeof( ShortcutStatuses ),
+        typeof( ActionArgumentNames ), typeof( ShortcutStatuses ), typeof( SettingIds ),
         typeof( AiAdapterKinds ), typeof( AiCredentialKinds ), typeof( AiLocality ),
         typeof( AiHealthStates ), typeof( AiSelectionStates ), typeof( AiAttachmentKinds ),
         typeof( AiGenerationOutcomes ), typeof( AiErrorCategories ),
@@ -137,6 +137,12 @@ public static partial class Program
             (nameof( QuicklinkValidator.MaximumIconCharacters ), QuicklinkValidator.MaximumIconCharacters)
         ] );
 
+        // Settings cards by their SettingIds name. Each card reads its search
+        // terms here; the launcher's Settings rows come from the same entries.
+        groups.Add( "SettingsEntries", ReadConstants( typeof( SettingIds ) )
+            .Select( static field => (field.Name, ( object ) SettingsEntryObject( SettingsIndex.Find( field.Value )! )) )
+            .ToArray( ) );
+
         groups.Add( "OptionClipboardHistoryMaximumEntries", [
             (nameof( OptionLimits.ClipboardHistory.MaximumEntries.Minimum ), OptionLimits.ClipboardHistory.MaximumEntries.Minimum),
             (nameof( OptionLimits.ClipboardHistory.MaximumEntries.Maximum ), OptionLimits.ClipboardHistory.MaximumEntries.Maximum)
@@ -154,6 +160,16 @@ public static partial class Program
 
         return groups;
     }
+
+    private static Dictionary<string, string> SettingsEntryObject( SettingEntry entry ) => new( StringComparer.Ordinal )
+    {
+        ["id"] = entry.Id,
+        ["page"] = entry.Page,
+        ["section"] = entry.Section,
+        ["title"] = entry.Title,
+        ["breadcrumb"] = entry.Breadcrumb,
+        ["keywords"] = entry.Keywords
+    };
 
     private static void QmlConstantsMatchCoreAndReferencesResolve( )
     {

@@ -53,6 +53,74 @@ public static partial class Program
         Equal( HerdrAvailability.Failed, (await StatusForAsync( "[]" )).Availability );
     }
 
+    private static async Task HerdrClientAsksAgainAfterAStatusCrashAsync( )
+    {
+        var attempts = 0;
+        HerdrFake flaky = new( ) { Respond = _ => ++attempts == 1 ? HerdrResult( "", 139, "boom\nmore detail" ) : HerdrResult( HerdrStatusRunningJson ) };
+        List<string> lines = [];
+        HerdrClient recovered = new( flaky.Runner, static ( ) => true, log: lines.Add );
+
+        Equal( HerdrAvailability.Available, (await recovered.GetStatusAsync( CancellationToken.None )).Availability );
+        Equal( 2, flaky.Calls.Count );
+        Equal( "event=herdr.command_failed command=\"status server\" outcome=signal exit_code=139 signal=SIGSEGV error=\"boom\"", lines.Single( ) );
+
+        // A second crash is reported, without a third attempt.
+        HerdrFake crashing = new( ) { Respond = _ => HerdrResult( "", 139, "boom" ) };
+        var failed = await new HerdrClient( crashing.Runner, static ( ) => true ).GetStatusAsync( CancellationToken.None );
+
+        Equal( HerdrAvailability.Failed, failed.Availability );
+        True( failed.Detail.Contains( "139", StringComparison.Ordinal ) );
+        Equal( 2, crashing.Calls.Count );
+
+        // Only a crash earns a second look: an ordinary error or a timeout does not.
+        HerdrFake exit = new( ) { Respond = _ => HerdrResult( "", 1, "usage" ) };
+        await new HerdrClient( exit.Runner, static ( ) => true ).GetStatusAsync( CancellationToken.None );
+        Equal( 1, exit.Calls.Count );
+
+        HerdrFake timeout = new( ) { Respond = _ => new ProcessResult { ExitCode = 137, StandardOutput = "", StandardError = "", TimedOut = true } };
+        await new HerdrClient( timeout.Runner, static ( ) => true ).GetStatusAsync( CancellationToken.None );
+        Equal( 1, timeout.Calls.Count );
+    }
+
+    private static async Task HerdrClientLogsFailuresWithoutArgumentsOrFloodingAsync( )
+    {
+        KeybindingClock clock = new( );
+        List<string> lines = [];
+        var error = "not running";
+        var throwing = false;
+        HerdrFake fake = new( )
+        {
+            Respond = _ => throwing ? throw new IOException( "spawn failed" ) : HerdrResult( "", 1, error )
+        };
+        HerdrClient client = new( fake.Runner, static ( ) => true, log: lines.Add, time: clock );
+
+        await client.RenameTabAsync( "w1:t1", "private name", CancellationToken.None );
+        Equal( "event=herdr.command_failed command=\"tab rename\" outcome=exit exit_code=1 error=\"not running\"", lines.Single( ) );
+
+        // A stopped server can fail every search: the same failure logs once a minute.
+        await client.RenameTabAsync( "w1:t1", "private name", CancellationToken.None );
+        Equal( 1, lines.Count );
+        clock.Now += TimeSpan.FromSeconds( 61 );
+        await client.RenameTabAsync( "w1:t1", "private name", CancellationToken.None );
+        Equal( 2, lines.Count );
+
+        error = "a different\u0007 \"failure\"";
+        await client.RenameTabAsync( "w1:t1", "private name", CancellationToken.None );
+        True( lines[^1].EndsWith( "error=\"a different failure\"", StringComparison.Ordinal ) );
+
+        throwing = true;
+        await client.GetStatusAsync( CancellationToken.None );
+        Equal( "event=herdr.command_failed command=\"status server\" outcome=start_failed error=\"spawn failed\"", lines[^1] );
+
+        // Success stays quiet, and a client without a log still works.
+        var logged = lines.Count;
+        throwing = false;
+        error = "";
+        await new HerdrClient( new HerdrFake( ).Runner, static ( ) => true, log: lines.Add ).GetStatusAsync( CancellationToken.None );
+        Equal( logged, lines.Count );
+        await new HerdrClient( fake.Runner, static ( ) => true ).GetStatusAsync( CancellationToken.None );
+    }
+
     private static async Task HerdrClientReportsTypedFailuresAsync( )
     {
         HerdrFake exit = new( ) { Respond = _ => HerdrResult( "", exitCode: 1, error: "usage" ) };

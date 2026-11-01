@@ -62,9 +62,14 @@ public sealed partial class HerdrClient
     private readonly BoundedProcessRunner _run;
     private readonly Func<bool> _available;
     private readonly Func<string, string?> _environment;
+    private readonly Action<string>? _log;
+    private readonly TimeProvider _time;
 
-    public HerdrClient( BoundedProcessRunner? runner = null, Func<bool>? available = null, Func<string, string?>? environment = null )
+    public HerdrClient( BoundedProcessRunner? runner = null, Func<bool>? available = null, Func<string, string?>? environment = null,
+        Action<string>? log = null, TimeProvider? time = null )
     {
+        _log = log;
+        _time = time ?? TimeProvider.System;
         _run = runner ?? DefaultRunAsync;
         _available = available ?? (static ( ) => ProcessRunner.ExistsOnPath( Executable ));
         _environment = environment ?? Environment.GetEnvironmentVariable;
@@ -104,9 +109,16 @@ public sealed partial class HerdrClient
 
         try
         {
-            result = await RunAsync( [StatusCommand, ServerCommand, JsonOption], StatusTimeout, StatusStandardOutputBytes, StatusStandardErrorBytes,
-                    cancellationToken )
+            result = await RunStatusAsync( cancellationToken )
                 .ConfigureAwait( false );
+
+            // This client is a short-lived process apart from the server, so
+            // one crash says little about Herdr: ask again before reporting it.
+            if ( Crashed( result ) )
+            {
+                result = await RunStatusAsync( cancellationToken )
+                    .ConfigureAwait( false );
+            }
         }
         catch ( Exception exception ) when ( exception is IOException or InvalidOperationException )
         {
@@ -204,9 +216,24 @@ public sealed partial class HerdrClient
         string[] argv = [SessionOption, DefaultCommand, .. arguments];
         ProcessExecutionLimits limits = CreateProcessLimits( standardOutputBytes, standardErrorBytes );
 
-        return await _run( Executable, argv, timeout, limits, cancellationToken )
-            .ConfigureAwait( false );
+        try
+        {
+            var result = await _run( Executable, argv, timeout, limits, cancellationToken )
+                .ConfigureAwait( false );
+            RecordFailure( arguments, result );
+
+            return result;
+        }
+        catch ( Exception exception ) when ( exception is IOException or InvalidOperationException )
+        {
+            Log( arguments, "outcome=start_failed", exception.Message );
+
+            throw;
+        }
     }
+
+    private ValueTask<ProcessResult> RunStatusAsync( CancellationToken cancellationToken ) =>
+        RunAsync( [StatusCommand, ServerCommand, JsonOption], StatusTimeout, StatusStandardOutputBytes, StatusStandardErrorBytes, cancellationToken );
 
     private static ValueTask<ProcessResult> DefaultRunAsync( string fileName, IReadOnlyList<string> arguments, TimeSpan timeout, ProcessExecutionLimits limits,
         CancellationToken cancellationToken ) =>

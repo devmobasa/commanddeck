@@ -26,12 +26,12 @@ ScrollView {
 
   ColumnLayout {
     width: searchScroll.availableWidth
-    spacing: Math.round(14 * searchScroll.host.theme.scale)
+    spacing: Math.round(22 * searchScroll.host.theme.scale)
 
     SettingsCard {
       id: fileSearchCard
       searchQuery: searchScroll.host.part_settingsSearch.text
-      searchTerms: "search home folder only indexed files configuration"
+      settingId: Protocol.SettingIds.FileSearch
       theme: searchScroll.host.theme
       title: "File search"
       description: "Limit file and configuration results to your home folder."
@@ -59,7 +59,7 @@ ScrollView {
     SettingsCard {
       id: sourcesCard
       searchQuery: searchScroll.host.part_settingsSearch.text
-      searchTerms: "search sources extensions install packages applications files windows workspaces commands quicklinks clipboard snippets home order drag reorder checkbox keyboard"
+      settingId: Protocol.SettingIds.SearchSources
       theme: searchScroll.host.theme
       title: "Search sources"
       description: "Search: the source answers what you type. Home: its items show before you type. After Top Matches, results are grouped in this order: drag a source by its grip, or press Alt+Up or Alt+Down on a row."
@@ -85,7 +85,7 @@ ScrollView {
     SettingsCard {
       id: behaviorCard
       searchQuery: searchScroll.host.part_settingsSearch.text
-      searchTerms: "search inline calculator arithmetic dates days weeks top matches ranking best grouped sections web fallback hide after opening item close copying reduce motion animation workspace layout previews snapshots"
+      settingId: Protocol.SettingIds.SearchBehavior
       theme: searchScroll.host.theme
       title: "Behavior"
 

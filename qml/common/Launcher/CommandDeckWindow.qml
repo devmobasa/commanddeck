@@ -2,6 +2,7 @@ import ".."
 pragma ComponentBehavior: Bound
 import QtQuick
 import "../UiConstants.js" as Ui
+import "../Protocol.js" as Protocol
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Wayland
@@ -152,7 +153,13 @@ PanelWindow {
   // Hyprland reports openlayer>>commanddeck when the launcher maps, which
   // scripts/measure-toggle-latency.cs times; the picker and HUD use their own.
   WlrLayershell.namespace: "commanddeck"
-  WlrLayershell.keyboardFocus: launcherWindow.host.opened && !launcherWindow.host.part_extensionController.externalActionPending
+  // While a file is dragged out, the pointer must reach the window underneath:
+  // the launcher hides, takes no input, and gives up its exclusive keyboard
+  // focus, or Hyprland keeps the pointer on this surface and the drop is lost.
+  mask: launcherWindow.host.draggingOut ? dragPassThrough : null
+  Region { id: dragPassThrough }
+  WlrLayershell.keyboardFocus: launcherWindow.host.opened && !launcherWindow.host.draggingOut
+      && !launcherWindow.host.part_extensionController.externalActionPending
     ? WlrKeyboardFocus.Exclusive
     : WlrKeyboardFocus.None
 
@@ -175,7 +182,7 @@ PanelWindow {
     }
 
     function onSelectedIndexChanged() {
-      if (launcherWindow.visible) {
+      if (launcherWindow.visible && !launcherContent.pointerSelection) {
         launcherWindow.part_resultList.positionViewAtIndex(launcherWindow.host.selectedIndex, ListView.Contain)
       }
     }
@@ -188,6 +195,7 @@ PanelWindow {
   Rectangle {
     objectName: "launcherScrim"
     anchors.fill: parent
+    opacity: launcherWindow.host.draggingOut ? 0 : 1
     color: launcherWindow.part_appTheme.overlayScrimColor
 
     MouseArea {
@@ -226,7 +234,7 @@ PanelWindow {
     color: launcherWindow.part_appTheme.panelBackground
     border.width: 1
     border.color: launcherWindow.part_appTheme.border
-    opacity: launcherWindow.host.opened ? 1 : 0
+    opacity: launcherWindow.host.opened && !launcherWindow.host.draggingOut ? 1 : 0
     transform: Translate {
       y: launcherWindow.host.opened ? 0 : -6
       Behavior on y {
@@ -390,6 +398,10 @@ PanelWindow {
         inspection: launcherWindow.host.runtimeStatus ? launcherWindow.host.runtimeStatus.inspection : null
         healthDetails: launcherWindow.part_runtimeStatusSurface.details
         healthSummary: launcherWindow.part_runtimeStatusSurface.issueCount > 0 ? launcherWindow.part_runtimeStatusSurface.summary : ""
+        missingRoots: launcherWindow.part_runtimeStatusSurface.missingRoots
+        foldersRelevant: launcherWindow.part_runtimeStatusSurface.hasIndexIssue
+        onStopIndexingRequested: rootId =>
+          launcherWindow.host.part_indexRootsController.change(Protocol.Operations.IndexDisable, "", rootId)
         onIndexedFoldersRequested: {
           launcherWindow.host.indexInspectorOpen = false
           launcherWindow.host.openSettings()
@@ -479,6 +491,17 @@ PanelWindow {
   }
 
   // A copy that closes the launcher leaves its message on this screen.
+  LargeTypeSurface {
+    anchors.fill: parent
+    z: 100
+    theme: launcherWindow.part_appTheme
+    text: launcherWindow.host.largeTypeText
+    onDismissed: {
+      launcherWindow.host.largeTypeText = ""
+      launcherWindow.host.focusRevision++
+    }
+  }
+
   LauncherHud {
     id: launcherHud
     host: launcherWindow.host

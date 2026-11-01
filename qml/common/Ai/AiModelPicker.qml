@@ -149,7 +149,7 @@ FocusScope {
           required property int index
           width: ListView.view ? ListView.view.width : 0
           height: Math.round(38 * root.theme.scale)
-          radius: Math.max(3, root.theme.radiusSmall - 2)
+          radius: Math.max(0, root.theme.radiusSmall - 2)
           color: row.index === modelList.currentIndex ? root.theme.selectedBackground : "transparent"
           Accessible.role: Accessible.ListItem
           Accessible.name: String(row.modelData.displayName || row.modelData.id || "")

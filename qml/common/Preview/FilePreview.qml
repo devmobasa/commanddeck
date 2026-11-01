@@ -192,7 +192,7 @@ ColumnLayout {
             Text {
               text: lineRow.lineNumber
               color: root.theme.textFaint
-              font.family: "monospace"
+              font.family: root.theme.monoFontFamily
               font.pixelSize: root.theme.fontSmall
               Layout.alignment: Qt.AlignTop
               Layout.preferredWidth: 36 * root.theme.scale
@@ -203,7 +203,7 @@ ColumnLayout {
               Layout.fillWidth: true
               text: lineRow.modelData || " "
               color: root.theme.textMuted
-              font.family: "monospace"
+              font.family: root.theme.monoFontFamily
               font.pixelSize: root.theme.fontBody
               wrapMode: Text.WrapAnywhere
               textFormat: Text.PlainText

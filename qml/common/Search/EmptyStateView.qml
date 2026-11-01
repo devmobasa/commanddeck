@@ -132,7 +132,7 @@ Item {
           Text {
             text: Ui.QueryPrefix.Ai
             color: root.theme.accent
-            font.family: "monospace"
+            font.family: root.theme.monoFontFamily
             font.pixelSize: root.theme.fontSmall
           }
         }
@@ -212,7 +212,7 @@ Item {
                 textFormat: Text.PlainText
                 text: String(chip.modelData.example)
                 color: root.theme.textMuted
-                font.family: "monospace"
+                font.family: root.theme.monoFontFamily
                 font.pixelSize: root.theme.fontCaption
                 elide: Text.ElideRight
                 Layout.fillWidth: true

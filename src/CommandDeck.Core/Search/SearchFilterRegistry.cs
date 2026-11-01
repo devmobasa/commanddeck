@@ -26,6 +26,8 @@ public static class SearchFilterRegistry
             "herdr-tab:", "htabs:" ),
         Filter( HerdrSearch.AttentionFilterId, "Needs attention", "hattention:", ProviderIds.Herdr, SourceIds.Herdr, ResultKinds.Tab,
             "herdr-attention:" ),
+        Filter( HerdrSearch.AgentsFilterId, "Herdr agents", "agents:", ProviderIds.Herdr, SourceIds.Herdr, ResultKinds.Tab,
+            "hagents:", "herdr-agents:" ),
         Filter( SearchFilterIds.Configuration, "Configuration", "cfg:", ProviderIds.Catalog, SourceIds.Configuration, ResultKinds.Configuration,
             "config:" ),
         Filter( SearchFilterIds.Commands, "Commands", "cmd:", ProviderIds.Catalog, SourceIds.CommandsQuicklinks, ResultKinds.CustomCommand ),

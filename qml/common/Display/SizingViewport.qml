@@ -10,6 +10,11 @@ Rectangle {
   property real requestedHeight: height
   default property alias content: canvas.data
 
+  // Keep the stationary rounded frame outside a constrained scrolling canvas.
+  // This inset is the smallest rectangle wholly inside the rounded corners;
+  // it also works with the software renderer, without a shader mask.
+  readonly property real frameInset: root.requestedWidth > root.width || root.requestedHeight > root.height
+    ? Math.max(root.border.width, Math.ceil(root.radius * (1 - Math.SQRT1_2))) : 0
   property bool revealPending: false
   function scheduleReveal() { revealPending = true }
   function revealCurrentFocus() {
@@ -37,6 +42,7 @@ Rectangle {
     id: viewport
     parent: root
     anchors.fill: parent
+    anchors.margins: root.frameInset
     clip: true
     contentWidth: Math.max(width, root.requestedWidth)
     contentHeight: Math.max(height, root.requestedHeight)

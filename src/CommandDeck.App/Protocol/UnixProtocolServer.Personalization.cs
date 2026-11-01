@@ -351,8 +351,11 @@ public sealed partial class UnixProtocolServer
         return new PreferencesSnapshot
         {
             Preferences = snapshot.Preferences,
+            Defaults = snapshot.Defaults,
             Customizations = GetVisibleCustomizations( snapshot, truncated ),
             Shortcuts = snapshot.Shortcuts,
+            Keybindings = snapshot.Keybindings,
+            ShortcutEditor = snapshot.ShortcutEditor,
             TotalCustomizationCount = total,
             CustomizationsTruncated = truncated
         };

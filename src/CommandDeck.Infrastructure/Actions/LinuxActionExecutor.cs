@@ -19,7 +19,7 @@ public sealed class LinuxActionExecutor : IActionExecutor
 
         ILinuxActionHandler[] handlers =
         [
-            new DesktopActionHandler( editor ),
+            new DesktopActionHandler( editor, new ApplicationWindowFocus( hyprlandRunner ) ),
             new ClipboardActionHandler( clipboardHistory, snippetClipboardRunner, timeProvider ),
             new SystemdActionHandler( editor, systemdRunner ),
             new HyprlandActionHandler( hyprlandRunner ),

@@ -9,10 +9,13 @@ internal readonly record struct CalculationToken( string Text, bool Number = fal
 internal static class CalculationLexer
 {
     private const int MaximumTokenCount = 256;
+    private const int MaximumLeadingGroupDigits = 3;
+    private const int DigitGroupLength = 4;
 
     internal static CalculationToken[] Tokenize( string expression )
     {
         List<CalculationToken> tokens = [];
+        Stack<bool> parentheses = [];
         for ( var i = 0; i < expression.Length; )
         {
             var character = expression[i];
@@ -35,6 +38,11 @@ internal static class CalculationLexer
             {
                 tokens.Add( new( CalculationUnitSymbols.LitresPer100Kilometres ) );
                 i = start + CalculationUnitSymbols.LitresPer100Kilometres.Length;
+            }
+            else if ( IsNumberStart( character ) && GroupedNumberEnd( expression, start, parentheses ) is var grouped and > 0 )
+            {
+                tokens.Add( new( expression[start..grouped].Replace( ",", string.Empty, StringComparison.Ordinal ), true ) );
+                i = grouped;
             }
             else if ( IsNumberStart( character ) )
             {
@@ -104,6 +112,7 @@ internal static class CalculationLexer
                 }
                 else
                 {
+                    TrackParenthesis( parentheses, tokens, symbol );
                     tokens.Add( new( symbol ) );
                 }
             }
@@ -269,6 +278,60 @@ internal static class CalculationLexer
             '÷' => "/",
             _ => character.ToString( )
         };
+    }
+
+    // A comma inside a function call separates arguments: max(100,200).
+    private static void TrackParenthesis( Stack<bool> parentheses, List<CalculationToken> tokens, string symbol )
+    {
+        if ( symbol == "(" )
+        {
+            parentheses.Push( tokens is [.., { Number: false } previous] && char.IsLetter( previous.Text[0] ) );
+        }
+        else if ( symbol == ")" )
+        {
+            parentheses.TryPop( out _ );
+        }
+    }
+
+    // 1,000,000.5: one to three digits, then groups of exactly three. Returns
+    // the number's end, or 0 when it has no such groups.
+    private static int GroupedNumberEnd( string expression, int start, Stack<bool> parentheses )
+    {
+        var i = start;
+        while ( i < expression.Length && char.IsAsciiDigit( expression[i] ) )
+        {
+            i++;
+        }
+
+        if ( i == start || i - start > MaximumLeadingGroupDigits || !IsDigitGroup( expression, i ) || parentheses.Contains( true ) )
+        {
+            return 0;
+        }
+
+        while ( IsDigitGroup( expression, i ) )
+        {
+            i += DigitGroupLength;
+        }
+
+        if ( i + 1 < expression.Length && expression[i] == '.' && char.IsAsciiDigit( expression[i + 1] ) )
+        {
+            i++;
+
+            while ( i < expression.Length && char.IsAsciiDigit( expression[i] ) )
+            {
+                i++;
+            }
+        }
+
+        return i;
+    }
+
+    private static bool IsDigitGroup( string expression, int comma )
+    {
+        return comma + DigitGroupLength <= expression.Length &&
+               expression[comma] == ',' &&
+               !expression.AsSpan( comma + 1, DigitGroupLength - 1 ).ContainsAnyExceptInRange( '0', '9' ) &&
+               !(comma + DigitGroupLength < expression.Length && char.IsAsciiDigit( expression[comma + DigitGroupLength] ));
     }
 
     private static bool IsNumberStart( char character )

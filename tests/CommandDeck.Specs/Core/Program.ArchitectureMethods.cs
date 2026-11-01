@@ -169,7 +169,8 @@ public static partial class Program
                 .ReadLines( Path.Combine( qmlRoot, "qmldir" ) )
                 .Skip( 1 )
                 .Select( static line => line
-                    .Split( ' ', StringSplitOptions.RemoveEmptyEntries )[0] )
+                    .Split( ' ', StringSplitOptions.RemoveEmptyEntries ) )
+                .Select( static words => words[0] )
                 .Order( StringComparer.Ordinal )
                 .ToArray( );
         }

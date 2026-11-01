@@ -207,6 +207,25 @@ QtObject {
     host.part_kindCueRow.selected = false
     host.part_kindCueRow.actionCount = 0
 
+    // A row whose action Hyprland already binds shows that key; no key, no cap.
+    host.expect(host.part_kindCueRow.keybinding === "",
+      "a row without a Hyprland binding shows no key cap")
+    host.part_kindCueRow.result = ({
+      title: "Mute", subtitle: "Audio", sourceId: "desktop-controls", kind: "custom-command",
+      metadata: { keybinding: "XF86AudioMute" }, actions: [{ id: "run", title: "Mute" }]
+    })
+    host.expect(host.part_kindCueRow.keybinding === "XF86AudioMute"
+        && host.part_kindCueRow.keybindingBadgeControl.label === "XF86AudioMute",
+      "a row whose action Hyprland binds shows that key")
+
+    // Only a row that opens a path can be dragged into another app.
+    host.expect(host.part_kindCueRow.dragPath === "", "a row without a path cannot be dragged")
+    host.part_kindCueRow.result = ({
+      title: "notes.md", subtitle: "~/notes.md", kind: "file",
+      actions: [{ id: "open", title: "Open", kind: "open-path", arguments: { path: "/home/demo/notes.md" } }]
+    })
+    host.expect(host.part_kindCueRow.dragPath === "/home/demo/notes.md", "a file row offers its path to a drag")
+
     host.part_kindCueRow.result = ({
       title: "Browser", subtitle: "Web browser", kind: "application",
       aliases: ["web", "browse"], matchedRanges: [{ start: 0, length: 3 }]

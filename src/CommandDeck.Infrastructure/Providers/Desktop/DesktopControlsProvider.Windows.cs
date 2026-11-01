@@ -4,6 +4,9 @@ public sealed partial class DesktopControlsProvider
 {
     private const int MinimumMonitors = 2;
     private const int MaximumWindowLabelCharacters = 80;
+
+    // Hyprland's fullscreen bitmask: 1 is maximized, 2 is fullscreen.
+    private const int FullscreenMode = 2;
     private static readonly TimeSpan HyprctlTimeout = TimeSpan.FromMilliseconds( 250 );
 
     // The launcher is a layer-shell overlay, so opening it does not change
@@ -37,11 +40,23 @@ public sealed partial class DesktopControlsProvider
 
         foreach ( (var command, var score) in matches )
         {
-            if ( CanRunWindowCommand( monitors, command ) )
+            if ( CanRunWindowCommand( monitors, command ) && WindowCommandTitle( command, window ) is { } title )
             {
-                results.Add( BuildWindowRow( command, window, score ) );
+                results.Add( BuildWindowRow( command, title, window, score ) );
             }
         }
+    }
+
+    // Toggles are named for what they will do to this window. A floating window
+    // already has Tile Window, so the floating toggle only floats a tiled one.
+    private static string? WindowCommandTitle( WindowCommand command, HyprlandWindow window )
+    {
+        return command.Operation switch
+        {
+            HyprlandActionOperations.ToggleFloating => window.Floating ? null : "Float Window",
+            HyprlandActionOperations.ToggleFullscreen => (window.Fullscreen & FullscreenMode) != 0 ? "Exit Fullscreen" : "Enter Fullscreen",
+            _ => command.Title
+        };
     }
 
     private async Task<string?> ReadHyprlandAsync( string request, CancellationToken cancellationToken )
@@ -61,7 +76,7 @@ public sealed partial class DesktopControlsProvider
         return GetSuccessfulOutput( result );
     }
 
-    private static SearchResult BuildWindowRow( WindowCommand command, HyprlandWindow window, double score )
+    private static SearchResult BuildWindowRow( WindowCommand command, string title, HyprlandWindow window, double score )
     {
         var label = string.IsNullOrWhiteSpace( window.Title ) ? window.Class : $"{window.Class} — {window.Title}";
         if ( label.Length > MaximumWindowLabelCharacters )
@@ -80,7 +95,7 @@ public sealed partial class DesktopControlsProvider
         {
             Id = DesktopControlResultIds.For( WindowResultPrefix + command.Id ),
             Kind = ResultKinds.CustomCommand,
-            Title = command.Title,
+            Title = title,
             Subtitle = "Window · " + label,
             Icon = command.Icon,
             ProviderId = ProviderIds.DesktopControls,
@@ -97,7 +112,7 @@ public sealed partial class DesktopControlsProvider
                 new CommandAction
                 {
                     Id = RunActionId,
-                    Title = command.Title,
+                    Title = title,
                     Kind = ActionKinds.HyprlandDispatch,
                     Arguments = arguments
                 }
@@ -110,7 +125,7 @@ public sealed partial class DesktopControlsProvider
         };
     }
 
-    private static ValueTask<ProcessResult> DefaultHyprlandRunAsync( string fileName, IReadOnlyList<string> arguments, TimeSpan timeout,
+    private static ValueTask<ProcessResult> DefaultRunAsync( string fileName, IReadOnlyList<string> arguments, TimeSpan timeout,
         CancellationToken cancellationToken ) =>
         ProcessRunner.RunAsync( fileName, arguments, null, null, timeout, cancellationToken );
 

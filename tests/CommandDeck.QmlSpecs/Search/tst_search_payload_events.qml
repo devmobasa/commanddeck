@@ -77,7 +77,9 @@ EventPathFixture {
         panel.visible = true
         panel.showPage("filters")
         waitForValue(panel.searchControl, "activeFocus", true)
+        waitForFrame(panel)
         mouseClick(panel.savedSearchNameControl)
+        verify(panel.savedSearchNameControl.activeFocus)
         typeText("Assistant prompt")
         keyClick(Qt.Key_Return)
         const saved = panel.savedSearchSaved

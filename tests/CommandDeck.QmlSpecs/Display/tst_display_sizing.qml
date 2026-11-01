@@ -288,7 +288,7 @@ TestCase {
           }
           const actualScale = fontScale * (size.displayScale === undefined ? size.effective : size.displayScale)
             * (size.densityScale === undefined ? 1 : size.densityScale)
-          compare(Math.round(46 * actualScale), Math.round(46 * scale))
+          compare(Math.round(42 * actualScale), Math.round(42 * scale))
           compare(size.panelWidth, Math.min(settings ? Math.round(paletteWidth * 1.3) : paletteWidth, width - 80))
           compare(size.panelHeight, Math.min(settings ? Math.round(paletteHeight * 1.35) : paletteHeight, height - top - bottom))
           compare(size.topInset, top)

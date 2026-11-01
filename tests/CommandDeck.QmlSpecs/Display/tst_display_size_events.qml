@@ -44,8 +44,8 @@ Item {
       panel.visible = true
       waitForValue(panel.searchControl, "activeFocus", true)
       typeText("display size")
+      // Enter goes straight to the matching card's first control.
       keyClick(Qt.Key_Return)
-      keyClick(Qt.Key_Tab)
 
       const slider = panel.displaySizeControl.sliderControl
       const marker = findChild(panel, "displaySizeLimitMarker")
@@ -83,8 +83,8 @@ Item {
       panel.visible = true
       waitForValue(panel.searchControl, "activeFocus", true)
       typeText("display size")
+      // Enter goes straight to the matching card's first control.
       keyClick(Qt.Key_Return)
-      keyClick(Qt.Key_Tab)
 
       const slider = panel.displaySizeControl.sliderControl
       const marker = findChild(panel, "displaySizeLimitMarker")
@@ -120,8 +120,8 @@ Item {
       waitForValue(panel.searchControl, "activeFocus", true)
       typeText("display size")
       compare(panel.currentPage, "customization")
+      // Enter goes straight to the matching card's first control.
       keyClick(Qt.Key_Return)
-      keyClick(Qt.Key_Tab)
 
       const slider = panel.displaySizeControl.sliderControl
       const reset = panel.displaySizeResetControl
@@ -200,8 +200,8 @@ Item {
       panel.visible = true
       waitForValue(panel.searchControl, "activeFocus", true)
       typeText("display size")
+      // Enter goes straight to the matching card's first control.
       keyClick(Qt.Key_Return)
-      keyClick(Qt.Key_Tab)
       waitForValue(panel.displaySizeControl.sliderControl, "activeFocus", true)
       verify(panel.displaySizeControl.sliderControl.Accessible.description.indexOf("100 keeps Previous sizing") >= 0)
       verify(panel.displaySizeControl.sliderControl.Accessible.description.indexOf("100 is Recommended") < 0)

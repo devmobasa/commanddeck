@@ -213,6 +213,12 @@ public static partial class Program
             DesktopControlsMatchPlainSearchAndHideMissingToolsAsync );
 
         await RunAsync( "desktop controls run literal argv and report tool failures", DesktopControlsRunLiteralArgvThroughRunArgvAsync );
+        await RunAsync( "desktop toggles are named for what they will do next", DesktopTogglesAreNamedForWhatTheyWillDoNextAsync );
+        await RunAsync( "settings rows open the card that holds the setting", SettingsRowsOpenTheCardThatHoldsTheSettingAsync );
+        Run( "settings cards and the settings index agree", SettingsCardsAndTheSettingsIndexAgree );
+        Run( "hyprland keybindings list every key with its description", HyprlandKeybindingsListEveryKeyWithItsDescription );
+        await RunAsync( "keybinding hints teach keys and offer bindings to copy", KeybindingHintsTeachKeysAndOfferBindingsAsync );
+        Run( "search timings summarize recent searches and slow providers", SearchTimingsSummarizeRecentSearchesAndSlowProviders );
 
         Run( "run command arguments follow the invocation rules, never a shell", RunCommandArgumentsFollowTheInvocationRules );
 

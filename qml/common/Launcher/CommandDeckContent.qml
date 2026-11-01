@@ -1,6 +1,7 @@
 import ".."
 pragma ComponentBehavior: Bound
 import "../Workspace/WorkspacePreviewPolicy.js" as WorkspacePreviewPolicy
+import "../Search/ResultWheel.js" as ResultWheel
 import QtQuick
 import "../UiConstants.js" as Ui
 import "../Protocol.js" as Protocol
@@ -10,6 +11,34 @@ ColumnLayout {
   required property var host
   readonly property alias part_searchBar: searchBar
   readonly property alias part_resultList: resultList
+  // The pointer is over this row, so selecting it must not scroll the list.
+  property bool pointerSelection: false
+  property int wheelRemainder: 0
+
+  function selectFromPointer(index) {
+    launcherContent.pointerSelection = true
+    launcherContent.host.host.selectedIndex = index
+    launcherContent.pointerSelection = false
+  }
+
+  function stepResults(wheel) {
+    if (!ResultWheel.isWheelTurn(wheel.phase === Qt.NoScrollPhase, wheel.angleDelta.y, wheel.pixelDelta.y)) {
+      wheel.accepted = false
+      return
+    }
+    const turn = ResultWheel.notches(wheel.angleDelta.y, launcherContent.wheelRemainder)
+    launcherContent.wheelRemainder = turn.remainder
+    const rows = launcherContent.host.host.part_rows
+    let top = resultList.indexAt(0, resultList.contentY + 1)
+    if (top < 0) top = resultList.indexAt(0, resultList.contentY + resultList.spacing + 1)
+    if (turn.steps === 0 || top < 0) return
+    const isHeader = row => rows.get(row).isHeader
+    const target = ResultWheel.targetRow(top, -turn.steps, rows.count, isHeader)
+    const above = target > 0 && isHeader(target - 1) ? target - 1 : target
+    if (above === 0) resultList.positionViewAtBeginning()
+    else resultList.positionViewAtIndex(above, ListView.Beginning)
+  }
+
   readonly property alias part_emptyStateView: emptyStateView
   readonly property alias part_noResultsView: noResultsView
   readonly property alias part_answerPane: answerPane
@@ -50,6 +79,13 @@ ColumnLayout {
   onSearchEdited: { if (!launcherContent.host.host.applyingBrowseNavigation) launcherContent.host.host.browseOffset = 0; launcherContent.host.host.part_searchSession.schedule() }
   directActions: launcherContent.host.host.directActions
   onShortcutRequested: actionId => launcherContent.host.host.invokeShortcut(actionId)
+  onChangeShortcutRequested: {
+    const deck = launcherContent.host.host
+    const result = deck.currentResult
+    const action = result ? (result.actions || []).find(value => value.id === "change-shortcut") : null
+    if (action) deck.invokeAction(result, action)
+  }
+  onLargeTypeRequested: text => launcherContent.host.host.openLargeType(text)
   onActionsRequested: launcherContent.host.openActionPanel()
   onHistoryRecallRequested: restart => launcherContent.host.host.part_queryRecall.step(restart)
   onZoomRequested: direction => launcherContent.host.host.stepDisplaySize(direction)
@@ -135,7 +171,7 @@ ColumnLayout {
           const contentPosition = resultList.mapToItem(resultList.contentItem, point.position.x, point.position.y)
           const index = resultList.indexAt(contentPosition.x, contentPosition.y)
           const row = resultList.itemAtIndex(index) as ResultListDelegate
-          if (row && !row.isHeader) launcherContent.host.host.selectedIndex = index
+          if (row && !row.isHeader) launcherContent.selectFromPointer(index)
         }
       }
 
@@ -155,7 +191,26 @@ ColumnLayout {
         }
         compactLayout: launcherContent.host.host.compactLayout
         controlHeld: searchBar.controlHeld
+        onDragStarted: {
+          launcherContent.selectFromPointer(listRow.index)
+          launcherContent.host.host.draggingOut = true
+        }
+        // A drop elsewhere is done with the launcher; a cancelled drag returns to it.
+        onDragFinished: dropped => {
+          launcherContent.host.host.draggingOut = false
+          if (dropped) launcherContent.host.host.dismiss()
+          else launcherContent.host.host.focusRevision++
+        }
       }
+    }
+
+    // A sibling, because a ListView's children scroll with its content.
+    MouseArea {
+      anchors.fill: resultList
+      z: 1
+      enabled: resultList.visible
+      acceptedButtons: Qt.NoButton
+      onWheel: wheel => launcherContent.stepResults(wheel)
     }
 
       EmptyStateView {

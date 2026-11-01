@@ -28,8 +28,12 @@ SettingsPanelState {
     searchScroll: pageStack.searchPage,
     settingsBackground: settingsBackground,
     settingsSearch: settingsSearch,
-    shortcutsScroll: pageStack.shortcutsPage
+    shortcutsScroll: pageStack.shortcutsPage,
+    diagnosticsScroll: pageStack.diagnosticsPage,
+    spotlight: searchFocus.spotlight
   })
+
+  function recordShortcut(target) { pageStack.shortcutsPage.recordBinding(target) }
 
   function pageDescriptor(pageId) {
     for (let index = 0; index < root.pages.length; index++) {
@@ -56,6 +60,11 @@ SettingsPanelState {
     root.maybeRefreshAgentModels()
     return true
   }
+
+  // Settings search and the launcher's Settings rows; see SettingsSearchFocus.
+  readonly property alias searchTarget: searchFocus.target
+  function revealSetting(settingId, url) { return searchFocus.revealSetting(settingId, url) }
+  function settingCard(settingId) { return searchFocus.settingCard(settingId) }
 
   function agentLocalityLabel(backend) { return SettingsAgentActions.agentLocalityLabel(root, backend) }
   function agentBackendOptions() { return SettingsAgentActions.agentBackendOptions(root) }
@@ -84,7 +93,10 @@ SettingsPanelState {
     Qt.callLater(root.synchronizeAgentChoices)
   }
   onAgentStatusChanged: Qt.callLater(root.maybeRefreshAgentModels)
-  onCurrentPageChanged: Qt.callLater(root.maybeRefreshAgentModels)
+  onCurrentPageChanged: {
+    Qt.callLater(root.maybeRefreshAgentModels)
+    Qt.callLater(searchFocus.updateTarget)
+  }
 
   focus: visible
   readonly property bool settingsTabFence: true
@@ -98,7 +110,8 @@ SettingsPanelState {
     }
   }
   Accessible.role: Accessible.Dialog
-  Accessible.name: "CommandDeck settings"
+  Accessible.name: "Settings"
+  property bool insetFrame: false
   readonly property alias closeControl: closeButton
   readonly property alias navigationControl: navigation
   readonly property alias saveErrorControl: saveErrorText
@@ -121,6 +134,11 @@ SettingsPanelState {
   function saveAiTemplate() { return SettingsAiActions.saveAiTemplate(root) }
   function containsFocusItem(item) { return SettingsNavigationActions.containsFocusItem(root, item) }
   function focusBoundary(forward) { return SettingsNavigationActions.focusBoundary(root, forward) }
+  function jumpToEdge(toEnd) {
+    const window = root.Window.window
+    return SettingsNavigationActions.jumpToEdge(root, window ? window.activeFocusItem : null,
+      { search: settingsSearch, rail: navigation, pages: pageStack, close: closeButton }, toEnd)
+  }
   function cycleFocus(forward) {
     const window = root.Window.window
     const current = window ? window.activeFocusItem : null
@@ -128,9 +146,27 @@ SettingsPanelState {
       root.focusBoundary(forward)
       return
     }
-    const next = current.nextItemInFocusChain(forward)
-    if (!next || !root.containsFocusItem(next)) root.focusBoundary(forward)
-    else next.forceActiveFocus()
+    const rail = root.railCollapsed ? pagePicker : navigation
+    const first = SettingsNavigationActions.firstContentControl(pageStack)
+    const last = SettingsNavigationActions.lastContentControl(pageStack)
+    const within = control => control && SettingsNavigationActions.containsFocusItem(control, current)
+    if (forward && within(settingsSearch)) {
+      if (root.filteredPages.length > 0) rail.forceActiveFocus()
+      else closeButton.forceActiveFocus()
+    } else if (forward && within(rail)) {
+      (first || closeButton).forceActiveFocus()
+    } else if (forward && (within(closeButton) || within(last))) {
+      if (within(closeButton)) settingsSearch.forceActiveFocus()
+      else closeButton.forceActiveFocus()
+    } else if (!forward && within(settingsSearch)) closeButton.forceActiveFocus()
+    else if (!forward && within(rail)) settingsSearch.forceActiveFocus()
+    else if (!forward && within(closeButton)) (root.filteredPages.length === 0 ? settingsSearch : last || rail).forceActiveFocus()
+    else if (!forward && within(first)) rail.forceActiveFocus()
+    else {
+      const next = current.nextItemInFocusChain(forward)
+      if (!next || !root.containsFocusItem(next)) root.focusBoundary(forward)
+      else next.forceActiveFocus()
+    }
   }
 
   Keys.priority: Keys.BeforeItem
@@ -152,6 +188,8 @@ SettingsPanelState {
     } else if (event.key === Qt.Key_PageUp && (event.modifiers & Qt.ControlModifier)) {
       navigation.step(-1)
       event.accepted = true
+    } else if ((event.key === Qt.Key_Home || event.key === Qt.Key_End) && (event.modifiers & ~Qt.KeypadModifier) === 0) {
+      event.accepted = root.jumpToEdge(event.key === Qt.Key_End)
     }
   }
 
@@ -162,7 +200,7 @@ SettingsPanelState {
     anchors.fill: parent
     radius: root.theme.radius
     color: root.theme.popupBackground
-    border.width: 1
+    border.width: root.insetFrame ? 0 : 1
     border.color: root.theme.border
   }
 
@@ -335,150 +373,158 @@ SettingsPanelState {
     }
   }
 
-  readonly property int outerPad: Math.round(root.theme.panelPadding * 1.3)
+  readonly property int outerPad: Math.round(14 * root.theme.scale)
   readonly property bool railCollapsed: root.width < Math.round(760 * root.theme.scale)
 
-  ColumnLayout {
+  // Reparent the single search control when the rail collapses. Its text,
+  // signals and public alias remain the same across a live resize.
+  SettingsField {
+    id: settingsSearch
+    parent: root.railCollapsed ? collapsedSearchSlot : sidebarSearchSlot
+    anchors.fill: parent
+    theme: root.theme
+    search: true
+    placeholderText: "Search Settings"
+    Accessible.name: "Search settings"
+    Accessible.description: "Filter settings by name or description. Enter moves to matching pages. Escape clears the search."
+    onTextChanged: {
+      pageStack.resetScroll()
+      searchFocus.searchChanged()
+    }
+    onAccepted: {
+      if (searchFocus.revealTarget()) return
+      if (root.filteredPages.length === 0) return
+      if (root.railCollapsed) pagePicker.forceActiveFocus()
+      else navigation.forceActiveFocus()
+    }
+    Keys.onDownPressed: {
+      if (root.filteredPages.length === 0) return
+      if (root.railCollapsed) pagePicker.forceActiveFocus()
+      else navigation.forceActiveFocus()
+    }
+  }
+
+  RowLayout {
     anchors.fill: parent
     anchors.margins: root.outerPad
-    spacing: Math.round(14 * root.theme.scale)
-
-    RowLayout {
-      Layout.fillWidth: true
-      spacing: Math.round(14 * root.theme.scale)
-
+    spacing: 0
+    Rectangle {
+      visible: !root.railCollapsed
+      Layout.preferredWidth: Math.round(212 * root.theme.scale)
+      Layout.fillHeight: true
+      color: root.theme.withAlpha(root.theme.text, 0.03)
+      radius: Math.round(12 * root.theme.scale)
       ColumnLayout {
-        Layout.fillWidth: true
-        spacing: Math.round(2 * root.theme.scale)
-
-        Text {
+        anchors.fill: parent
+        anchors.margins: Math.round(10 * root.theme.scale)
+        spacing: Math.round(20 * root.theme.scale)
+        Item {
+          id: sidebarSearchSlot
           Layout.fillWidth: true
-          text: "Settings"
-          color: root.theme.text
-          font.family: root.theme.fontFamily
-          font.pixelSize: Math.round(root.theme.fontHeading * 1.45)
-          font.weight: Font.DemiBold
+          implicitHeight: Math.round(root.theme.fontBody * 2.3)
         }
-
-        Text {
+        SettingsNav {
+          id: navigation
+          theme: root.theme
           Layout.fillWidth: true
-          text: root.pageDescriptor(root.currentPage).title
-            + " · " + root.pageDescriptor(root.currentPage).subtitle
-          color: root.theme.textMuted
-          elide: Text.ElideRight
-          font.family: root.theme.fontFamily
-          font.pixelSize: root.theme.fontBody
+          pages: root.filteredPages
+          currentId: root.currentPage
+          onSelected: pageId => root.showPage(pageId)
         }
-      }
-
-      DeckButton {
-        id: closeButton
-        theme: root.theme
-        text: "Close"
-        Accessible.name: "Close settings"
-        onClicked: root.dismissed()
+        Item { Layout.fillHeight: true }
       }
     }
-
-    SettingsField {
-      id: settingsSearch
-      theme: root.theme
-      Layout.fillWidth: true
-      placeholderText: "Search settings…"
-      Accessible.name: "Search settings"
-      Accessible.description: "Filter settings by name or description. Enter moves to matching pages. Escape clears the search."
-      onTextChanged: {
-        pageStack.resetScroll()
-      }
-      onAccepted: {
-        if (root.filteredPages.length === 0) return
-        if (root.railCollapsed) pagePicker.forceActiveFocus()
-        else navigation.forceActiveFocus()
-      }
-      Keys.onDownPressed: {
-        if (root.filteredPages.length === 0) return
-        if (root.railCollapsed) pagePicker.forceActiveFocus()
-        else navigation.forceActiveFocus()
-      }
-    }
-
-    Text {
-      Layout.fillWidth: true
-      text: root.filteredPages.length === 0
-        ? "No settings found. Try a different search."
-        : "Ctrl+F Search · Enter Pages · Tab Controls · Esc " + (settingsSearch.text.length > 0 ? "Clear search" : "Close")
-      color: root.theme.textMuted
-      font.family: root.theme.fontFamily
-      font.pixelSize: root.theme.fontSmall
-      wrapMode: Text.Wrap
-      Accessible.role: Accessible.StaticText
-      Accessible.name: text
-    }
-
-    // A rejected save puts its control back; say why here, not only in the
-    // launcher footer that Settings covers.
-    Text {
-      id: saveErrorText
-      Layout.fillWidth: true
-      visible: root.preferencesSaveError.length > 0
-      text: "Couldn't save that change: " + root.preferencesSaveError
-      color: root.theme.urgent
-      font.family: root.theme.fontFamily
-      font.pixelSize: root.theme.fontSmall
-      wrapMode: Text.Wrap
-      Accessible.role: Accessible.AlertMessage
-      Accessible.name: text
-    }
-
-    RowLayout {
-      visible: root.filteredPages.length > 0
+    ColumnLayout {
       Layout.fillWidth: true
       Layout.fillHeight: true
-      Layout.minimumHeight: 0
-      spacing: Math.round(18 * root.theme.scale)
-
-      SettingsNav {
-        id: navigation
-        theme: root.theme
-        visible: !root.railCollapsed
-        Layout.alignment: Qt.AlignTop
-        Layout.preferredWidth: implicitWidth
-        pages: root.filteredPages
-        currentId: root.currentPage
-        onSelected: pageId => root.showPage(pageId)
+      Layout.minimumWidth: 0
+      Layout.leftMargin: Math.round(20 * root.theme.scale)
+      Layout.rightMargin: Math.round(20 * root.theme.scale)
+      spacing: Math.round(14 * root.theme.scale)
+      RowLayout {
+        Layout.fillWidth: true
+        Text {
+          visible: !root.railCollapsed
+          Layout.fillWidth: true
+          text: root.pageDescriptor(root.currentPage).title
+          color: root.theme.text
+          elide: Text.ElideRight
+          font.family: root.theme.fontFamily
+          font.pixelSize: Math.round(root.theme.fontHeading * 1.15)
+          font.weight: Font.DemiBold
+        }
+        SettingsChoice {
+          id: pagePicker
+          theme: root.theme
+          visible: root.railCollapsed
+          Layout.preferredWidth: implicitWidth
+          showCurrentDescription: false
+          options: root.filteredPages.map(page => ({ id: page.id, title: page.title, description: page.subtitle }))
+          currentIndex: root.filteredPages.findIndex(page => page.id === root.currentPage)
+          Accessible.name: "Settings page"
+          onActivated: index => root.showPage(root.filteredPages[index].id)
+        }
+        Item { visible: root.railCollapsed; Layout.fillWidth: true }
+        DeckButton {
+          id: closeButton
+          theme: root.theme
+          text: "Close"
+          Accessible.name: "Close settings"
+          onClicked: root.dismissed()
+        }
       }
-
-      Rectangle {
-        visible: !root.railCollapsed
-        Layout.fillHeight: true
-        Layout.preferredWidth: 1
-        color: root.theme.separator
-      }
-
-      // Collapsed rail: a compact page picker keeps every page reachable on
-      // narrow surfaces.
-      SettingsChoice {
-        id: pagePicker
-        theme: root.theme
+      Item {
+        id: collapsedSearchSlot
         visible: root.railCollapsed
-        Layout.alignment: Qt.AlignTop
-        Layout.preferredWidth: Math.round(170 * root.theme.scale)
-        showCurrentDescription: false
-        options: root.filteredPages.map(page => ({ id: page.id, title: page.title, description: page.subtitle }))
-        currentIndex: root.filteredPages.findIndex(page => page.id === root.currentPage)
-        Accessible.name: "Settings page"
-        onActivated: index => root.showPage(root.filteredPages[index].id)
+        Layout.fillWidth: true
+        implicitHeight: Math.round(root.theme.fontBody * 2.3)
       }
-
+      Text {
+        id: saveErrorText
+        Layout.fillWidth: true
+        visible: root.preferencesSaveError.length > 0
+        text: "Couldn't save that change: " + root.preferencesSaveError
+        color: root.theme.urgent
+        font.family: root.theme.fontFamily
+        font.pixelSize: root.theme.fontSmall
+        wrapMode: Text.Wrap
+        Accessible.role: Accessible.AlertMessage
+        Accessible.name: text
+      }
       SettingsPageHost {
         id: pageStack
         host: root
+        visible: root.filteredPages.length > 0
         Layout.fillWidth: true
         Layout.minimumWidth: 0
         Layout.minimumHeight: 0
         Layout.fillHeight: true
       }
+      Item { visible: root.filteredPages.length === 0; Layout.fillHeight: true }
+      Text {
+        Layout.fillWidth: true
+        text: root.filteredPages.length === 0
+          ? "No settings found. Try a different search."
+          : "Ctrl+F Search · " + (root.searchTarget ? "Enter Go to setting · ↓ Pages" : "Enter Pages")
+            + " · Tab Controls · Esc " + (settingsSearch.text.length > 0 ? "Clear search" : "Close")
+        color: root.theme.textFaint
+        font.family: root.theme.fontFamily
+        font.pixelSize: root.theme.fontSmall
+        elide: Text.ElideRight
+        maximumLineCount: 1
+        Accessible.role: Accessible.StaticText
+        Accessible.name: text
+      }
     }
+  }
+
+  SettingsSearchFocus {
+    id: searchFocus
+    anchors.fill: parent
+    z: 30
+    panel: root
+    searchField: settingsSearch
+    theme: root.theme
   }
 
   AiProviderEditor {

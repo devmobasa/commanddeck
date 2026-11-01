@@ -27,27 +27,21 @@ Item {
     Text {
       Layout.alignment: Qt.AlignVCenter
       textFormat: Text.PlainText
-      text: root.title.toUpperCase()
-      color: root.theme.textFaint
+      text: root.title
+      color: root.theme.textMuted
       font.family: root.theme.fontFamily
-      font.pixelSize: root.theme.fontCaption
-      font.letterSpacing: 0.8
+      font.pixelSize: root.theme.fontSmall
       font.weight: Font.DemiBold
     }
 
-    Rectangle {
-      Layout.fillWidth: true
-      Layout.preferredHeight: 1
-      Layout.alignment: Qt.AlignVCenter
-      color: root.theme.separator
-    }
+    Item { Layout.fillWidth: true }
 
     Text {
       Layout.alignment: Qt.AlignVCenter
       text: root.count
-      color: root.theme.textFaint
+      color: root.theme.textMuted
       font.family: root.theme.fontFamily
-      font.pixelSize: root.theme.fontCaption
+      font.pixelSize: root.theme.fontSmall
     }
   }
 }

@@ -49,7 +49,7 @@ KeyboardButton {
         text: root.text
         textFormat: Text.PlainText
         color: !root.enabled ? root.theme.textFaint
-          : root.primary ? root.theme.background
+          : root.primary ? root.theme.accentText
           : root.danger ? root.theme.urgent
           : root.theme.text
         font.family: root.theme.fontFamily
@@ -62,7 +62,7 @@ KeyboardButton {
         visible: root.keyHint.length > 0
         implicitHeight: Math.round(root.theme.fontCaption * 1.9)
         implicitWidth: Math.max(implicitHeight, hintLabel.implicitWidth + Math.round(10 * root.theme.scale))
-        radius: Math.max(2, root.theme.radiusSmall - 2)
+        radius: Math.max(0, root.theme.radiusSmall - 2)
         color: root.primary ? root.tint(root.theme.background, 0.18) : root.theme.surfaceStrong
         border.width: root.primary ? 0 : 1
         border.color: root.theme.separator
@@ -71,7 +71,7 @@ KeyboardButton {
           id: hintLabel
           anchors.centerIn: parent
           text: root.keyHint
-          color: root.primary && root.enabled ? root.theme.background
+          color: root.primary && root.enabled ? root.theme.accentText
             : root.enabled ? root.theme.textMuted : root.theme.textFaint
           font.family: root.theme.fontFamily
           font.pixelSize: root.theme.fontCaption
@@ -81,7 +81,7 @@ KeyboardButton {
   }
 
   background: Rectangle {
-    radius: Math.max(4, root.theme.radiusSmall)
+    radius: root.theme.radiusSmall
     color: {
       if (!root.enabled) return root.primary ? root.theme.surface : "transparent"
       if (root.primary)
@@ -94,7 +94,7 @@ KeyboardButton {
       return root.outlined ? root.theme.surface : "transparent"
     }
     border.width: root.activeFocus ? 2 : root.latched || root.outlined ? 1 : 0
-    border.color: root.activeFocus ? (root.primary ? root.theme.background : root.toneColor)
+    border.color: root.activeFocus ? (root.primary ? root.theme.accentText : root.toneColor)
       : root.latched ? root.tint(root.theme.accent, 0.55) : root.theme.separator
 
     // A primary button is already accent-filled, so keyboard focus adds a ring.

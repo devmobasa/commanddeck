@@ -37,7 +37,8 @@ Rectangle {
     {
       title: "Open",
       items: [
-        { keys: ["↵"], text: "Run the primary action" },
+        { keys: ["↵"], text: "Run the primary action; an app that is already open is focused" },
+        { keys: ["Shift+↵"], text: "Open a new window of an app that is already open" },
         { keys: ["Ctrl+1", "Ctrl+9"], text: "Run the numbered result" },
         { keys: [">"], text: "Start with > to run a program on PATH, such as > htop" },
         { keys: ["Tab"], text: "Complete a filter hint or the selected result, or fill its inputs" }
@@ -48,6 +49,8 @@ Rectangle {
       items: [
         { keys: ["→"], text: "Open actions, caret at end of query" },
         { keys: ["Ctrl+K"], text: "Open actions" },
+        { keys: ["Alt+K"], text: "Change or add the selected command’s shortcut" },
+        { keys: ["Ctrl+L"], text: "Show the search, or a calculator answer, across the screen" },
         { keys: ["Ctrl+↵"], text: "Run the second action, or Reveal for files" },
         { keys: ["Ctrl+Shift+↵"], text: "Run the third action" },
         { keys: ["Ctrl+Shift+C"], text: "Copy the file path, or the result's first Copy action" },
@@ -332,7 +335,7 @@ Rectangle {
                   textFormat: Text.PlainText
                   text: filterRow.tokens
                   color: root.theme.accent
-                  font.family: "monospace"
+                  font.family: root.theme.monoFontFamily
                   font.pixelSize: root.theme.fontSmall
                   elide: Text.ElideRight
                 }

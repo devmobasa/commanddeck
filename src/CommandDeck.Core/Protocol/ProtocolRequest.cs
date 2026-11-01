@@ -2,6 +2,7 @@ namespace CommandDeck;
 
 public sealed class ProtocolRequest
 {
+    public ShortcutEditRequest? Shortcut { get; init; }
     public ClipboardRequest? Clipboard { get; init; }
     public string? HerdrWorkspaceId { get; init; }
     public string? OmarchyMenuId { get; init; }

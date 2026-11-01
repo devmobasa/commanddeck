@@ -62,13 +62,13 @@ public static partial class Program
             {
                 connection.Open( );
                 using var command = connection.CreateCommand( );
-                command.CommandText = "UPDATE saved_searches SET shortcut = 'CTRL+D' WHERE id = $id;";
+                command.CommandText = "UPDATE saved_searches SET shortcut = 'ALT+K' WHERE id = $id;";
                 command.Parameters.AddWithValue( "$id", id );
                 command.ExecuteNonQuery( );
             }
 
             var stale = (await reopened.GetSavedSearchesAsync( CancellationToken.None )).Single( );
-            True( stale is { Shortcut: null, ReservedShortcut: "CTRL+D" } );
+            True( stale is { Shortcut: null, ReservedShortcut: "ALT+K" } );
 
             SearchCoordinator coordinator = new( [], new SearchOptions( ), reopened, reopened, reopened.UsageHistory );
 
@@ -92,7 +92,7 @@ public static partial class Program
             {
                 "ctrl+home", "ctrl+end", "ctrl+enter", "shift+ctrl+enter", "ctrl+1", "ctrl+9", "ctrl+u", "ctrl+up", "ctrl+down", "ctrl+k", "ctrl+d",
                 "ctrl+shift+c", "alt+shift+a", "shift+alt+d", "ctrl+0", "ctrl+i", "alt+shift+r", "ctrl+alt+up", "alt+ctrl+down", "shift+escape",
-                "shift+esc", "ctrl+return", "ctrl+shift+return"
+                "shift+esc", "ctrl+return", "ctrl+shift+return", "alt+k"
             };
         }
     }

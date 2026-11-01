@@ -36,6 +36,9 @@ public sealed class IndexRootStatus
     public long IndexedItemCount { get; init; }
     public DateTimeOffset? LastSuccessAt { get; init; }
     public string? LastError { get; init; }
+
+    // The folder doesn't exist; the launcher offers to stop indexing it.
+    public bool Missing { get; init; }
     public string? Remediation { get; init; }
 }
 
@@ -94,6 +97,25 @@ public sealed class RuntimeStatusSnapshot
     public required IncrementalIndexStatus Indexing { get; init; }
     public required CatalogInspection Inspection { get; init; }
     public List<ProviderHealthStatus> Providers { get; init; } = [];
+    public string? Version { get; init; }
+    public int ProcessId { get; init; }
+    public DateTimeOffset? StartedAt { get; init; }
+    public string? SocketPath { get; init; }
+    public SearchTimingSummary? SearchTimings { get; init; }
+
+    // The socket is known to the server that answers, not to the runtime.
+    public RuntimeStatusSnapshot WithSocketPath( string socketPath ) => new( )
+    {
+        Catalog = Catalog,
+        Indexing = Indexing,
+        Inspection = Inspection,
+        Providers = Providers,
+        Version = Version,
+        ProcessId = ProcessId,
+        StartedAt = StartedAt,
+        SocketPath = socketPath,
+        SearchTimings = SearchTimings
+    };
 }
 
 public sealed class ReindexReport

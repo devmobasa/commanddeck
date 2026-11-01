@@ -21,7 +21,8 @@ public enum ProtocolFamily
     Ai,
     AiManagement,
     Agent,
-    Package
+    Package,
+    Shortcuts
 }
 
 /// <summary>How a connection admits an operation before its handler runs.</summary>
@@ -66,6 +67,9 @@ public static class ProtocolRoutes
     private static FrozenDictionary<string, ProtocolRoute> Build( )
     {
         Dictionary<string, ProtocolRoute> routes = new( StringComparer.Ordinal );
+        Add( routes, ProtocolFamily.Shortcuts, ProtocolOperations.ShortcutRecordStart, ProtocolOperations.ShortcutRecordStop,
+            ProtocolOperations.ShortcutSet, ProtocolOperations.ShortcutRestore, ProtocolOperations.ShortcutResetAll,
+            ProtocolOperations.ShortcutHotkey, ProtocolOperations.ShortcutExport );
         Add( routes, ProtocolFamily.Search, ProtocolAdmission.ReplacesSearch, ProtocolOperations.Search );
         Add( routes, ProtocolFamily.Suggest, ProtocolOperations.Suggest );
         Add( routes, ProtocolFamily.Invoke, ProtocolOperations.Invoke );

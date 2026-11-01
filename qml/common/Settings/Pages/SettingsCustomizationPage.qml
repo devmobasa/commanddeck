@@ -8,6 +8,8 @@ import QtQuick.Layouts
 
 ScrollView {
   required property var host
+  readonly property alias part_fontCard: fontCard
+  readonly property alias part_interfaceFont: interfaceFontChoice
   readonly property alias part_displayCard: displayCard
   readonly property alias part_displaySizeSlider: displaySizeSlider
   readonly property alias part_displaySizeReset: displaySizeReset
@@ -36,12 +38,40 @@ ScrollView {
 
   ColumnLayout {
     width: customizationScroll.availableWidth
-    spacing: Math.round(14 * customizationScroll.host.theme.scale)
+    spacing: Math.round(22 * customizationScroll.host.theme.scale)
+
+    SettingsCard {
+      id: fontCard
+      searchQuery: customizationScroll.host.part_settingsSearch.text
+      settingId: Protocol.SettingIds.InterfaceFont
+      theme: customizationScroll.host.theme
+      title: "Appearance"
+
+      SettingsRow {
+        theme: customizationScroll.host.theme
+        label: "Interface font"
+        help: "Sans, or the font your Omarchy shell uses."
+        SettingsSegmented {
+          id: interfaceFontChoice
+          theme: customizationScroll.host.theme
+          options: [{ id: "sans", title: "Sans" }, { id: "shell", title: "Shell font" }]
+          Component.onCompleted: currentIndex = customizationScroll.host.interfaceFont === "shell" ? 1 : 0
+          Connections {
+            target: customizationScroll.host
+            function onInterfaceFontChanged() {
+              interfaceFontChoice.currentIndex = customizationScroll.host.interfaceFont === "shell" ? 1 : 0
+            }
+          }
+          Accessible.name: "Interface font"
+          onActivated: index => customizationScroll.host.interfaceFontSelected(options[index].id)
+        }
+      }
+    }
 
     SettingsCard {
       id: displayCard
       searchQuery: customizationScroll.host.part_settingsSearch.text
-      searchTerms: "customization display size scale zoom percent larger smaller screen match recommended previous"
+      settingId: Protocol.SettingIds.DisplaySize
       theme: customizationScroll.host.theme
       title: "Display size"
       description: "Scale text and controls together. Recommended follows your workspace and Omarchy font settings. Applies immediately."
@@ -105,7 +135,7 @@ ScrollView {
     SettingsCard {
       id: layoutCard
       searchQuery: customizationScroll.host.part_settingsSearch.text
-      searchTerms: "customization layout width height panel percent reset compact dense rows one line badges footer shortcuts preview pane details"
+      settingId: Protocol.SettingIds.Layout
       theme: customizationScroll.host.theme
       title: "Layout"
       description: "Panel space and result details, without changing text or control size. Applies immediately."
@@ -158,7 +188,7 @@ ScrollView {
     SettingsCard {
       id: closingCard
       searchQuery: customizationScroll.host.part_settingsSearch.text
-      searchTerms: "customization escape close reopen keep last search home root timeout"
+      settingId: Protocol.SettingIds.Closing
       theme: customizationScroll.host.theme
       title: "Closing and reopening"
       description: "What Escape does and how a reopened launcher starts. Shift+Escape always returns to Home."
@@ -209,7 +239,7 @@ ScrollView {
     SettingsCard {
       id: transparencyCard
       searchQuery: customizationScroll.host.part_settingsSearch.text
-      searchTerms: "customization transparent background opacity amount wallpaper"
+      settingId: Protocol.SettingIds.Transparency
       theme: customizationScroll.host.theme
       title: "Transparency"
       description: "Off is a solid panel. On lets the wallpaper show through. Applies immediately."
@@ -262,7 +292,7 @@ ScrollView {
     SettingsCard {
       id: favoritesCard
       searchQuery: customizationScroll.host.part_settingsSearch.text
-      searchTerms: "customization favorites aliases bookmarks order unavailable remove"
+      settingId: Protocol.SettingIds.Favorites
       theme: customizationScroll.host.theme
       title: "Favorites and aliases"
       description: customizationScroll.host.snapshot && (customizationScroll.host.snapshot.customizations || []).length > 0
@@ -302,8 +332,8 @@ ScrollView {
               + (favoriteRow.modelData.aliases.length > 0 ? " · " + favoriteRow.modelData.aliases[0] : "")
             color: favoriteRow.modelData.isAvailable ? customizationScroll.host.theme.text : customizationScroll.host.theme.textMuted
             font.family: customizationScroll.host.theme.fontFamily
-            font.pixelSize: Math.round(customizationScroll.host.theme.fontBody * 1.1)
-            font.weight: Font.Medium
+            font.pixelSize: customizationScroll.host.theme.fontBody
+            font.weight: Font.Normal
             elide: Text.ElideRight
           }
 
@@ -361,7 +391,7 @@ ScrollView {
     SettingsCard {
       id: dataCard
       searchQuery: customizationScroll.host.part_settingsSearch.text
-      searchTerms: "customization data query history remember searches learn ranking usage export backup privacy"
+      settingId: Protocol.SettingIds.Data
       theme: customizationScroll.host.theme
       title: "Data"
       description: "History stays on this computer and can be reviewed or cleared here. Export writes every personalization to a file."
@@ -417,7 +447,7 @@ ScrollView {
     SettingsCard {
       id: resetCard
       searchQuery: customizationScroll.host.part_settingsSearch.text
-      searchTerms: "customization reset defaults"
+      settingId: Protocol.SettingIds.Reset
       theme: customizationScroll.host.theme
       title: "Reset"
       description: "Returns sources, favorites, aliases, saved searches, and assistant grants to their defaults. Removes added folders and re-enables configuration folders. Asks for confirmation."

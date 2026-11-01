@@ -23,7 +23,7 @@ TextField {
   font.pixelSize: Math.round(root.theme.fontBody * 1.1)
 
   background: Rectangle {
-    radius: Math.max(4, root.theme.radiusSmall)
+    radius: root.theme.radiusSmall
     color: root.theme.surfaceStrong
     border.width: root.activeFocus ? 2 : 1
     border.color: root.activeFocus ? root.theme.focusRing : root.theme.separator

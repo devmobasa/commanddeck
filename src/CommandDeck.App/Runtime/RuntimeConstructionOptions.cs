@@ -2,6 +2,8 @@ namespace CommandDeck;
 
 internal sealed class RuntimeConstructionOptions
 {
+    internal Func<ShortcutEditorService>? ShortcutEditorFactory { get; init; }
+
     internal bool StartIndexer { get; init; } = true;
 
     internal Func<AgentOptions, CodexCredentialStore, IAgentBackend>? AgentBackendFactory { get; init; }

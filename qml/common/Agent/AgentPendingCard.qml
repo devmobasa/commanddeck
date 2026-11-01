@@ -154,7 +154,7 @@ Rectangle {
         : ""
       color: pendingCard.host.theme.text
       wrapMode: Text.WrapAnywhere
-      font.family: "monospace"
+      font.family: pendingCard.host.theme.monoFontFamily
       font.pixelSize: pendingCard.host.theme.fontSmall
     }
 
@@ -253,7 +253,7 @@ Rectangle {
       }
       color: pendingCard.host.theme.text
       wrapMode: Text.WrapAnywhere
-      font.family: "monospace"
+      font.family: pendingCard.host.theme.monoFontFamily
       font.pixelSize: pendingCard.host.theme.fontSmall
       Accessible.role: Accessible.StaticText
       Accessible.name: "Exact command to run"

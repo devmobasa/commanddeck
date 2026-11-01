@@ -4,6 +4,7 @@ import QtQuick
 import "../../UiConstants.js" as Ui
 import QtQuick.Controls
 import QtQuick.Layouts
+import "../../Protocol.js" as Protocol
 
 ScrollView {
   required property var host
@@ -25,12 +26,12 @@ ScrollView {
 
   ColumnLayout {
     width: filtersScroll.availableWidth
-    spacing: Math.round(14 * filtersScroll.host.theme.scale)
+    spacing: Math.round(22 * filtersScroll.host.theme.scale)
 
     SettingsCard {
       id: filterAliasesCard
       searchQuery: filtersScroll.host.part_settingsSearch.text
-      searchTerms: "filters aliases tokens add remove"
+      settingId: Protocol.SettingIds.FilterAliases
       theme: filtersScroll.host.theme
       title: "Filter aliases"
       description: "Short tokens that stand for a filter, so a: can mean ai: and cfg: can mean config:."
@@ -107,8 +108,8 @@ ScrollView {
             textFormat: Text.PlainText
             text: aliasRow.modelData.alias + ":"
             color: filtersScroll.host.theme.text
-            font.family: "monospace"
-            font.pixelSize: Math.round(filtersScroll.host.theme.fontBody * 1.1)
+            font.family: filtersScroll.host.theme.monoFontFamily
+            font.pixelSize: filtersScroll.host.theme.fontBody
             font.weight: Font.DemiBold
           }
 
@@ -118,7 +119,7 @@ ScrollView {
             color: filtersScroll.host.theme.textMuted
             elide: Text.ElideRight
             font.family: filtersScroll.host.theme.fontFamily
-            font.pixelSize: Math.round(filtersScroll.host.theme.fontBody * 1.1)
+            font.pixelSize: filtersScroll.host.theme.fontBody
           }
 
           DeckButton {
@@ -137,7 +138,7 @@ ScrollView {
     SettingsCard {
       id: savedSearchesCard
       searchQuery: filtersScroll.host.part_settingsSearch.text
-      searchTerms: "filters saved searches name shortcut home run edit delete"
+      settingId: Protocol.SettingIds.SavedSearches
       theme: filtersScroll.host.theme
       title: "Saved searches"
       description: "Keep the current query and filters under a name, optionally with a shortcut and a Home row."
@@ -159,6 +160,7 @@ ScrollView {
 
         SettingsField {
           id: savedSearchShortcut
+          machineText: true
           theme: filtersScroll.host.theme
           Layout.preferredWidth: Math.round(170 * filtersScroll.host.theme.scale)
           placeholderText: "Ctrl+Alt+R"
@@ -249,8 +251,8 @@ ScrollView {
               text: savedSearchRow.modelData.name
               color: filtersScroll.host.theme.text
               font.family: filtersScroll.host.theme.fontFamily
-              font.pixelSize: Math.round(filtersScroll.host.theme.fontBody * 1.1)
-              font.weight: Font.Medium
+              font.pixelSize: filtersScroll.host.theme.fontBody
+              font.weight: Font.Normal
               elide: Text.ElideRight
             }
 

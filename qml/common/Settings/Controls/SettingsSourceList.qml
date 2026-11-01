@@ -227,12 +227,10 @@ Item {
   component HeadingText: Text {
     id: headingText
     required property var theme
-    color: headingText.theme.textFaint
+    color: headingText.theme.textMuted
     font.family: headingText.theme.fontFamily
-    font.pixelSize: headingText.theme.fontCaption
+    font.pixelSize: headingText.theme.fontSmall
     font.weight: Font.DemiBold
-    font.letterSpacing: 0.6
-    font.capitalization: Font.AllUppercase
     verticalAlignment: Text.AlignVCenter
     elide: Text.ElideRight
   }

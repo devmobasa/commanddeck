@@ -14,6 +14,9 @@ FocusScope {
   property var inspection: null
   property string healthDetails: ""
   property string healthSummary: ""
+  // Configured folders that don't exist, as { id, path }; each gets a Stop indexing button.
+  property var missingRoots: []
+  property bool foldersRelevant: true
   readonly property string heading: "Index inspector" + (healthSummary.length > 0 ? " · " + healthSummary : "")
   property int page: 0
   property int pageSize: healthDetails.length > 0 ? 4 : 6
@@ -31,9 +34,11 @@ FocusScope {
   readonly property alias healthControl: healthText
   readonly property alias previousControl: previousButton
   readonly property alias nextControl: nextButton
+  readonly property alias stopIndexingControl: stopIndexingButton
 
   signal dismissed()
   signal indexedFoldersRequested()
+  signal stopIndexingRequested(string rootId)
   readonly property alias foldersControl: foldersButton
 
   function close() {
@@ -74,7 +79,7 @@ FocusScope {
     } else if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
       // The details show only with health issues, and a page button is
       // disabled at its end; both are skipped then.
-      FocusTrap.cycleTargets([closeButton, healthText, foldersButton, previousButton, nextButton],
+      FocusTrap.cycleTargets([closeButton, healthText, stopIndexingButton, foldersButton, previousButton, nextButton],
         event.key === Qt.Key_Tab && !(event.modifiers & Qt.ShiftModifier))
       event.accepted = true
     }
@@ -166,8 +171,21 @@ FocusScope {
       }
 
       DeckButton {
+        id: stopIndexingButton
+        visible: root.healthDetails.length > 0 && root.missingRoots.length > 0
+        theme: root.theme
+        text: root.missingRoots.length === 1
+          ? "Stop indexing " + String(root.missingRoots[0].path).replace(/^\/home\/[^/]+(?=\/|$)/, "~")
+          : "Stop indexing " + root.missingRoots.length + " missing folders"
+        Accessible.name: root.missingRoots.length === 1
+          ? "Stop indexing " + root.missingRoots[0].path : text
+        Accessible.description: "Turns the missing folders off in indexed folders. Your configuration file is not changed."
+        onClicked: root.missingRoots.forEach(missing => root.stopIndexingRequested(String(missing.id)))
+      }
+
+      DeckButton {
         id: foldersButton
-        visible: root.healthDetails.length > 0
+        visible: root.foldersRelevant && root.healthDetails.length > 0
         theme: root.theme
         text: "Manage indexed folders"
         Accessible.name: "Manage indexed folders in Settings"

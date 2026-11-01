@@ -2,7 +2,9 @@ import ".."
 pragma ComponentBehavior: Bound
 import QtQuick
 import "../MatchHighlight.js" as MatchHighlight
+import "FileDrag.js" as FileDrag
 import "../Protocol.js" as Protocol
+import "../Settings/KeyChords.js" as KeyChords
 import QtQuick.Layouts
 
 Rectangle {
@@ -195,7 +197,7 @@ Rectangle {
     root.rowIconSize + Math.round(10 * root.theme.scale))
   radius: root.theme.radiusSmall
   color: root.selected ? root.theme.selectedBackground : "transparent"
-  border.width: root.selected ? 1 : 0
+  border.width: 0
   border.color: root.theme.selectedBorder
   Accessible.role: Accessible.ListItem
   Accessible.name: root.accessibilityName
@@ -245,7 +247,7 @@ Rectangle {
           ? root.theme.accent
           : (root.selected ? root.theme.selectedText : root.theme.text)
         elide: Text.ElideRight
-        font.family: root.isCalc ? "monospace" : root.theme.fontFamily
+        font.family: root.isCalc ? root.theme.monoFontFamily : root.theme.fontFamily
         font.pixelSize: root.theme.fontTitle
         font.weight: (root.selected || root.isCalc) ? Font.DemiBold : Font.Normal
       }
@@ -278,7 +280,7 @@ Rectangle {
       implicitWidth: Math.min(aliasLabel.implicitWidth + Math.round(12 * root.theme.scale),
         Math.round(80 * root.theme.scale))
       implicitHeight: Math.round(root.theme.fontSmall * 1.8)
-      radius: Math.max(2, root.theme.radiusSmall - 2)
+      radius: Math.max(0, root.theme.radiusSmall - 2)
       color: root.theme.surfaceStrong
       border.width: 1
       border.color: root.theme.separator
@@ -343,7 +345,7 @@ Rectangle {
       Layout.alignment: Qt.AlignVCenter
       implicitHeight: Math.round(root.theme.fontCaption * 1.7)
       implicitWidth: kindCueText.implicitWidth + Math.round(10 * root.theme.scale)
-      radius: Math.max(2, root.theme.radiusSmall - 2)
+      radius: Math.max(0, root.theme.radiusSmall - 2)
       color: root.cueTint(root.cueFamily)
 
       Text {
@@ -357,12 +359,27 @@ Rectangle {
       }
     }
 
-    // Rows one through nine advertise their Ctrl shortcut.
-    KeyCap {
+    // Shortcut hints stay quiet; footer and Help retain their key caps.
+    Text {
+      id: keybindingBadge
+      readonly property string label: KeyChords.display(root.keybinding)
+      text: label
+      visible: root.keybinding.length > 0 && !root.compactLayout
+      color: root.theme.textMuted
+      horizontalAlignment: Text.AlignRight
+      font.family: root.theme.monoFontFamily
+      font.pixelSize: root.theme.fontSmall
+      Accessible.name: "Hyprland key " + root.keybinding
+    }
+    Text {
       id: ordinalBadge
+      readonly property string label: KeyChords.display("Ctrl+" + root.ordinal)
+      text: label
       visible: root.ordinal > 0 && (!root.compactLayout || root.controlHeld)
-      theme: root.theme
-      label: "Ctrl+" + root.ordinal
+      color: root.theme.textMuted
+      horizontalAlignment: Text.AlignRight
+      font.family: root.theme.monoFontFamily
+      font.pixelSize: root.theme.fontSmall
     }
 
     Text {
@@ -397,6 +414,9 @@ Rectangle {
 
   readonly property alias toolTipControl: rowToolTip
   readonly property alias ordinalBadgeControl: ordinalBadge
+  readonly property alias keybindingBadgeControl: keybindingBadge
+  readonly property string keybinding: root.result && root.result.metadata
+    ? String(root.result.metadata[Protocol.ResultMetadataKeys.Keybinding] || "") : ""
   readonly property alias checkedMarkControl: checkedMark
   readonly property alias submenuChevronControl: submenuChevron
   readonly property real contentOpacity: content.opacity
@@ -410,10 +430,34 @@ Rectangle {
       + (root.aliases.length > 0 ? "\nAliases: " + root.aliases.join(", ") : "")
   }
 
+  // Drag a file row into another app, the way a file manager does.
+  readonly property string dragPath: FileDrag.filePath(root.result)
+  signal dragStarted()
+  signal dragFinished(bool dropped)
+
+  Component.onDestruction: if (dragProxy.Drag.active) root.dragFinished(false)
+
+  Item {
+    id: dragProxy
+    width: 1
+    height: 1
+    Drag.dragType: Drag.Automatic
+    Drag.supportedActions: Qt.CopyAction
+    Drag.mimeData: FileDrag.mimeData(root.dragPath)
+    Drag.active: rowMouse.drag.active
+    Drag.onDragStarted: root.dragStarted()
+    Drag.onDragFinished: dropAction => {
+      dragProxy.x = 0
+      dragProxy.y = 0
+      root.dragFinished(dropAction !== Qt.IgnoreAction)
+    }
+  }
+
   MouseArea {
     id: rowMouse
     anchors.fill: parent
     hoverEnabled: true
+    drag.target: root.dragPath.length > 0 ? dragProxy : null
     onClicked: root.activated()
     onPressAndHold: root.actionsRequested()
   }
